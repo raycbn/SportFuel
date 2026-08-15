@@ -28,7 +28,7 @@ describe("success criterion UI", () => {
     expect(screen.getByText(/g\/h$/)).toBeInTheDocument();
     expect(screen.getByText(/ml\/h$/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Ver plan completo/i })).toBeInTheDocument();
-    expect(screen.getByText(/Reparte raciones pequeñas/i)).toBeInTheDocument();
+    expect(screen.getByText(/Reparte carbohidratos e hidratación/i)).toBeInTheDocument();
   });
 
   it("shows football strategy without opening the full plan", () => {

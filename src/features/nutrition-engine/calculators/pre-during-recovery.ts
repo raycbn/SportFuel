@@ -213,9 +213,7 @@ export function calculateDuring(
       ? " No inventamos un split T1/T2: el g/h es del tiempo total. Come sobre todo en bici; en carrera a pie baja la tolerancia."
       : input.sport === "hiking"
         ? " En senderismo prioriza comida real y un ritmo de ingesta más holgado que en competición."
-        : input.sport === "football"
-          ? " El fútbol es intermitente: las bandas de resistencia continua se aplican con cautela al tiempo de alta demanda, no como un ultra."
-          : "";
+        : "";
 
   return {
     events,
