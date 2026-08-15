@@ -39,7 +39,7 @@ npm run build
 
 https://tranquil-basbousa-7fec55.netlify.app
 
-Auto-deploy desde GitHub: falta vincular el repo en Netlify o los secretos de Actions. Pasos en [DEPLOY.md](./DEPLOY.md).
+Cada push a `main` se publica solo (Netlify GitHub App). Detalles en [DEPLOY.md](./DEPLOY.md).
 
 ## Documentación
 
