@@ -1,7 +1,6 @@
 # Cómo seguir con la web (después de reclamar Netlify)
 
-Site ID: `506ccb87-455e-4323-964e-b9ed61c6475e`  
-URL actual: https://tranquil-basbousa-7fec55.netlify.app
+Última revisión: 2026-08-15. Si `/planner` da 404, falta un deploy nuevo tras reclamar el sitio.
 
 ## 1. Haz el sitio público (ahora mismo da 401)
 
