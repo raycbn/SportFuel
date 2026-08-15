@@ -8,7 +8,7 @@ Aplicación web para planificar **nutrición e hidratación** antes, durante y d
 
 Un usuario anónimo puede: **Ciclismo → 3 h → intensidad moderada → 75 kg → 25 °C → calcular** y recibir carbohidratos, hidratación, estrategia, timeline y lista. Sin cuenta, sin IA y sin backend obligatorio.
 
-- Planner en `/planner` (modo rápido + paso a paso)
+- Planner en `/planner` (ciclismo, running, trail, senderismo, triatlón, fútbol)
 - Motor determinista en `src/features/nutrition-engine/`
 - “Qué tengo en casa”, preferencia comida real / productos / mezcla
 - Lista de compra y coste orientativo por salida
@@ -39,7 +39,7 @@ npm run build
 
 https://tranquil-basbousa-7fec55.netlify.app
 
-Si ves un login de Netlify, el proyecto está en visibilidad privada. Pasos en [DEPLOY.md](./DEPLOY.md).
+Auto-deploy desde GitHub: falta vincular el repo en Netlify o los secretos de Actions. Pasos en [DEPLOY.md](./DEPLOY.md).
 
 ## Documentación
 

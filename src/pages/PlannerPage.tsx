@@ -21,6 +21,13 @@ import { clearSweatRate, readSweatRate } from "@/lib/sweat-store";
 
 const STEPS = ["Deporte", "Duración", "Intensidad", "Condiciones", "Opcional"];
 
+function defaultDuration(sport: SportId): number {
+  if (sport === "hiking") return 240;
+  if (sport === "triathlon") return 150;
+  if (sport === "football") return 90;
+  return 180;
+}
+
 export function PlannerPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -35,7 +42,7 @@ export function PlannerPage() {
     const sweat = Number.isFinite(sweatParam) && sweatParam >= 0.2 && sweatParam <= 3.5 ? sweatParam : stored?.litersPerHour;
     return {
       sport,
-      durationMinutes: sport === "hiking" ? 240 : sport === "triathlon" ? 150 : 180,
+      durationMinutes: defaultDuration(sport),
       intensity: "moderate",
       bodyMassKg: 75,
       temperatureC: 25,
@@ -71,6 +78,20 @@ export function PlannerPage() {
     track("calculator_completed", { sport: form.sport, duration: form.durationMinutes });
     track("plan_created", { sport: form.sport });
     if (next.shoppingList.length) track("shopping_list_created", { items: next.shoppingList.length });
+    requestAnimationFrame(() => document.getElementById("resultado")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
+
+  function pickSport(sport: SportId) {
+    setForm((current) => {
+      const typical = [90, 150, 180, 240];
+      return {
+        ...current,
+        sport,
+        durationMinutes: typical.includes(current.durationMinutes) ? defaultDuration(sport) : current.durationMinutes,
+        fuelPreference: sport === "hiking" && current.fuelPreference === "mixed" ? "real-food" : current.fuelPreference,
+      };
+    });
+    setPlan(null);
   }
 
   return (
@@ -108,7 +129,7 @@ export function PlannerPage() {
               <legend className="font-display text-xl">Deporte</legend>
               <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {SPORT_READY.map((sport) => (
-                  <Choice key={sport} active={form.sport === sport} onClick={() => update("sport", sport as SportId)} label={SPORT_LABELS[sport]} />
+                  <Choice key={sport} active={form.sport === sport} onClick={() => pickSport(sport as SportId)} label={SPORT_LABELS[sport]} />
                 ))}
               </div>
             </fieldset>
@@ -180,7 +201,7 @@ export function PlannerPage() {
                   const product = getProduct(id);
                   const checked = form.availableFoodIds?.includes(id);
                   return (
-                    <label key={id} className="flex items-center gap-2 rounded-xl bg-fuel-50 px-3 py-2 text-sm">
+                    <label key={id} className="sf-tap flex items-center gap-2 rounded-xl bg-fuel-50 px-3 py-2 text-sm">
                       <input
                         type="checkbox"
                         checked={Boolean(checked)}
@@ -238,17 +259,17 @@ export function PlannerPage() {
 
           <div className="flex flex-col gap-3 sm:flex-row">
             {step > 0 ? (
-              <button type="button" className="rounded-full border px-5 py-3" onClick={() => setStep((value) => value - 1)}>
+              <button type="button" className="sf-btn w-full border sm:w-auto" onClick={() => setStep((value) => value - 1)}>
                 Atrás
               </button>
             ) : null}
-            <button type="submit" className="rounded-full bg-fuel-600 px-5 py-3 font-semibold text-white">
+            <button type="submit" className="sf-btn w-full bg-fuel-600 text-white sm:w-auto">
               {step < 4 ? "Continuar" : "Crear plan"}
             </button>
             {step < 4 ? (
               <button
                 type="button"
-                className="rounded-full border px-5 py-3"
+                className="sf-btn w-full border sm:w-auto"
                 onClick={() => {
                   track("calculator_started", { sport: form.sport, mode: "quick" });
                   calculate();
@@ -288,7 +309,7 @@ function Choice({ label, active, onClick }: { label: string; active: boolean; on
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-2xl px-4 py-3 text-left text-sm font-medium ${active ? "bg-ink-900 text-white" : "bg-fuel-50"}`}
+      className={`sf-tap w-full rounded-2xl px-4 py-3 text-left text-sm font-medium ${active ? "bg-ink-900 text-white" : "bg-fuel-50"}`}
     >
       {label}
     </button>
@@ -318,7 +339,7 @@ function NumberField({
         max={max}
         value={Number.isFinite(value) ? value : ""}
         onChange={(event) => onChange(Number(event.target.value))}
-        className="mt-1 w-full rounded-2xl border border-ink-900/10 px-4 py-3"
+        className="sf-tap mt-1 w-full rounded-2xl border border-ink-900/10 px-4 py-3"
       />
     </label>
   );

@@ -1,11 +1,17 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { encodePublicPlan, sourceList, type NutritionPlan } from "@/features/nutrition-engine";
+import { encodePublicPlan, sourceList, type NutritionPlan, type SportId } from "@/features/nutrition-engine";
 import { track } from "@/lib/analytics";
 import { getSessionEmail } from "@/lib/auth";
 import { formatDuration, GOAL_LABELS, INTENSITY_LABELS, PREFERENCE_LABELS, SPORT_LABELS } from "@/lib/labels";
 import { savePlan } from "@/lib/plans-store";
 import { DisclaimerBanner } from "./DisclaimerBanner";
+
+const SPORT_CALLOUTS: Partial<Record<SportId, string>> = {
+  hiking: "Senderismo: prioriza comida real y un ritmo de ingesta más holgado. El desnivel es contexto, no gramos extra.",
+  triathlon: "Triatlón: no hay un split T1/T2 inventado. El g/h es del tiempo total; come sobre todo en bici.",
+  football: "Fútbol: partido intermitente. Hidratación al borde y en el descanso, no un protocolo de ultra.",
+};
 
 export function PlanResult({ plan, onNeedAuth }: { plan: NutritionPlan; onNeedAuth: () => void }) {
   const [openFull, setOpenFull] = useState(false);
@@ -32,8 +38,10 @@ export function PlanResult({ plan, onNeedAuth }: { plan: NutritionPlan; onNeedAu
 
   const shareUrl = `/plan/${plan.shareSlug}?p=${encodeURIComponent(encodePublicPlan(plan))}`;
 
+  const sportCallout = SPORT_CALLOUTS[plan.sport];
+
   return (
-    <div className="space-y-6">
+    <div id="resultado" className="space-y-6">
       <section className="sf-card overflow-hidden">
         <div className="bg-ink-900 px-5 py-6 text-white sm:px-8">
           <p className="text-xs uppercase tracking-[0.2em] text-fuel-300">Tu plan</p>
@@ -50,13 +58,17 @@ export function PlanResult({ plan, onNeedAuth }: { plan: NutritionPlan; onNeedAu
           <Metric label="Hidratación orientativa" value={plan.summary.hydrationPerHourLabel} />
           <Metric label="Electrolitos" value={plan.summary.electrolyteLabel} />
         </div>
+        <div className="space-y-3 px-5 pb-4 sm:px-8">
+          <p className="text-sm leading-relaxed text-ink-700">{plan.during.strategySummary}</p>
+          {sportCallout ? <p className="rounded-2xl bg-fuel-50 px-4 py-3 text-sm">{sportCallout}</p> : null}
+        </div>
         <div className="flex flex-col gap-3 px-5 pb-6 sm:flex-row sm:px-8">
-          <button type="button" className="rounded-full bg-fuel-600 px-5 py-3 font-semibold text-white" onClick={() => setOpenFull(true)}>
+          <button type="button" className="sf-btn w-full bg-fuel-600 text-white sm:w-auto" onClick={() => setOpenFull(true)}>
             Ver plan completo
           </button>
           <button
             type="button"
-            className="rounded-full border border-ink-900/10 px-5 py-3 font-semibold"
+            className="sf-btn w-full border border-ink-900/10 sm:w-auto"
             onClick={() => {
               const email = getSessionEmail();
               if (!email) {
@@ -72,7 +84,7 @@ export function PlanResult({ plan, onNeedAuth }: { plan: NutritionPlan; onNeedAu
           </button>
           <Link
             to={shareUrl}
-            className="rounded-full border border-ink-900/10 px-5 py-3 text-center font-semibold"
+            className="sf-btn w-full border border-ink-900/10 sm:w-auto"
             onClick={() => track("plan_shared", { sport: plan.sport })}
           >
             Compartir
@@ -86,8 +98,8 @@ export function PlanResult({ plan, onNeedAuth }: { plan: NutritionPlan; onNeedAu
             <h3 className="font-display text-xl">Timeline</h3>
             <ol className="space-y-3">
               {plan.during.events.map((event) => (
-                <li key={`${event.minute}-${event.label}`} className="flex gap-4 rounded-2xl bg-fuel-50 px-4 py-3">
-                  <span className="w-16 shrink-0 font-semibold text-fuel-700">{event.label}</span>
+                <li key={`${event.minute}-${event.label}`} className="flex flex-col gap-1 rounded-2xl bg-fuel-50 px-4 py-3 sm:flex-row sm:gap-4">
+                  <span className="shrink-0 font-semibold text-fuel-700 sm:w-20">{event.label}</span>
                   <div>
                     <p>{event.items.join(" ")}</p>
                     {event.carbohydrateGrams ? <p className="text-sm text-ink-700">≈ {event.carbohydrateGrams} g CHO · {event.fluidMl} ml</p> : null}
@@ -134,7 +146,7 @@ export function PlanResult({ plan, onNeedAuth }: { plan: NutritionPlan; onNeedAu
             ) : (
               <ul className="space-y-2">
                 {plan.pantry.used.map((item) => (
-                  <li key={item.productId} className="flex justify-between gap-3 rounded-xl bg-fuel-50 px-3 py-2">
+                  <li key={item.productId} className="flex flex-col gap-1 rounded-xl bg-fuel-50 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                     <span>
                       {item.servings} × {item.name}
                     </span>
@@ -219,18 +231,28 @@ export function PlanResult({ plan, onNeedAuth }: { plan: NutritionPlan; onNeedAu
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-3 sm:flex-row">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <button
           type="button"
-          className="rounded-full border px-4 py-2 text-sm"
+          className="sf-btn w-full border text-sm sm:w-auto"
           onClick={async () => {
             const url = `${window.location.origin}${shareUrl}`;
+            const title = `Mi plan para ${formatDuration(plan.durationMinutes)} de ${SPORT_LABELS[plan.sport]}`;
+            try {
+              if (typeof navigator.share === "function") {
+                await navigator.share({ title, text: plan.during.strategySummary, url });
+                track("plan_shared", { method: "native" });
+                return;
+              }
+            } catch {
+              /* cancelado o no soportado: copiar */
+            }
             await navigator.clipboard.writeText(url);
             setCopied(true);
             track("plan_shared", { method: "copy" });
           }}
         >
-          {copied ? "Enlace copiado" : "Copiar tarjeta: “Mi plan para esta salida”"}
+          {copied ? "Enlace copiado" : "Copiar o compartir tarjeta"}
         </button>
         <p className="text-xs text-ink-700">El enlace no incluye peso, email ni datos privados.</p>
       </div>

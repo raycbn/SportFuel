@@ -48,6 +48,12 @@ function examplesFor(preference: FuelPreference, sport?: PlannerInput["sport"]):
       { name: "Frutos secos o dátiles", reason: "Fácil de llevar; no sustituye agua ni una comida si la jornada es larga." },
     ];
   }
+  if (sport === "football") {
+    return [
+      { name: "Bocadillo o yogur + fruta 2–3 h antes", reason: "El fútbol es intermitente: la comida previa cubre gran parte de la demanda si el partido es el evento principal." },
+      { name: "Agua y, si hace calor, algo de sodio en el descanso", reason: "No se aplica un protocolo de ultra-resistencia a un 90 min." },
+    ];
+  }
   if (sport === "triathlon") {
     return [
       { name: "Desayuno familiar 2–3 h antes", reason: "La natación no es un buen momento para comer; llega con glucógeno ya cubierto." },
@@ -116,7 +122,9 @@ export function calculateDuring(
       ? "En el agua casi no se come. Prepara bidones y raciones para la bici."
       : input.sport === "hiking"
         ? "Lleva comida real accesible. No hace falta un gel en el minuto 0."
-        : "No hace falta “cargar” un gel en el minuto 0 si acabas de comer.";
+        : input.sport === "football"
+          ? "Hidratación al borde y en el descanso. No copies un plan de marcha de 5 h."
+          : "No hace falta “cargar” un gel en el minuto 0 si acabas de comer.";
 
   const events: TimelineEvent[] = [
     {
@@ -125,7 +133,9 @@ export function calculateDuring(
       items:
         input.sport === "triathlon"
           ? ["Empieza hidratado. Reserva la ingesta principal para el segmento de bici."]
-          : ["Empieza hidratado y con el primer bidón/alimento a mano."],
+          : input.sport === "football"
+            ? ["Sal euhidratado. Reserva la ingesta para el descanso si el partido es de ~90 min."]
+            : ["Empieza hidratado y con el primer bidón/alimento a mano."],
       note: startNote,
     },
   ];
@@ -140,6 +150,38 @@ export function calculateDuring(
       events,
       strategySummary: "Sesión corta: prioriza haber comido antes y beber según sed.",
       why: "Las guías no marcan un protocolo de carbohidratos durante esfuerzos <45 min.",
+      meta: DURING_META,
+    };
+  }
+
+  if (input.sport === "football") {
+    const half = Math.min(45, Math.max(30, Math.round(input.durationMinutes / 2)));
+    const choBreak = roundTo((carbohydrate.gramsPerHourTypical * 15) / 60, 5);
+    const fluidBreak = roundTo((hydration.mlPerHourTypical * 15) / 60, 25);
+    if (input.durationMinutes >= 60) {
+      events.push({
+        minute: half,
+        label: "Descanso",
+        carbohydrateGrams: choBreak || undefined,
+        fluidMl: fluidBreak || undefined,
+        items: [
+          "Agua al borde o en vestuario.",
+          carbohydrate.gramsPerHourTypical > 0
+            ? "Si el calor o el desgaste lo piden: fruta o bebida ligera, no un protocolo de marcha."
+            : "La comida previa cubre la mayor parte.",
+        ],
+      });
+    }
+    events.push({
+      minute: input.durationMinutes,
+      label: "Final",
+      items: ["Pasa a recuperación: fluido y comida habitual. No hace falta un protocolo de ultra."],
+    });
+    return {
+      events,
+      strategySummary:
+        "El fútbol es intermitente: las bandas de resistencia continua se aplican con cautela al tiempo de alta demanda, no como un ultra. Hidratación al borde y en el descanso.",
+      why: "Un partido de ~90 min no se trata como una marcha de varias horas. La comida previa y el descanso importan más que un g/h de ultra.",
       meta: DURING_META,
     };
   }
@@ -171,7 +213,9 @@ export function calculateDuring(
       ? " No inventamos un split T1/T2: el g/h es del tiempo total. Come sobre todo en bici; en carrera a pie baja la tolerancia."
       : input.sport === "hiking"
         ? " En senderismo prioriza comida real y un ritmo de ingesta más holgado que en competición."
-        : "";
+        : input.sport === "football"
+          ? " El fútbol es intermitente: las bandas de resistencia continua se aplican con cautela al tiempo de alta demanda, no como un ultra."
+          : "";
 
   return {
     events,
@@ -192,7 +236,7 @@ export function calculateRecovery(input: PlannerInput): RecoveryPlan {
       : "Con tiempo hasta la siguiente sesión, no hace falta un protocolo agresivo: una comida normal con arroz, pan, patata o fruta cubre la reposición.",
     proteinNote: `ISSN describe ${proteinG}. No hay que perseguir una ventana de minutos; importa más el total del día.`,
     hydrationNote:
-      "Si necesitas rehidratarar rápido, ACSM menciona reponer más del déficit (en torno a 125–150 % de la pérdida de peso) con algo de sodio. Si no hay prisa, agua y comida salada habituales suelen bastar.",
+      "Si necesitas rehidratar rápido, ACSM menciona reponer más del déficit (en torno a 125–150 % de la pérdida de peso) con algo de sodio. Si no hay prisa, agua y comida salada habituales suelen bastar.",
     mealExamples:
       input.fuelPreference === "sports-products"
         ? ["Batido o yogur + fruta", "Bocadillo y bebida", "Comida habitual en las 2–4 h siguientes"]

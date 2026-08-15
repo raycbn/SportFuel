@@ -17,7 +17,7 @@ const faqs = [
   },
   {
     q: "¿Para qué deportes sirve ahora?",
-    a: "El calculador MVP cubre ciclismo, running y trail. Senderismo, triatlón y fútbol tienen reglas básicas. El resto está preparado en arquitectura.",
+    a: "Ciclismo, running, trail, senderismo, triatlón y fútbol. El resto (natación, MTB, gravel, etc.) está preparado en arquitectura.",
   },
 ];
 
@@ -26,7 +26,7 @@ export function HomePage() {
     <>
       <Seo
         title="SportFuel — Prepara tu próxima salida"
-        description="Calcula qué comer, cuánto beber y qué llevar antes de entrenar o competir. Planes de nutrición e hidratación para ciclismo, running y trail."
+        description="Calcula qué comer, cuánto beber y qué llevar antes de entrenar o competir. Planes de nutrición e hidratación para ciclismo, running, trail, senderismo, triatlón y fútbol."
         path="/"
         jsonLd={[webAppLd(), faqLd(faqs)]}
       />
@@ -39,10 +39,10 @@ export function HomePage() {
               Calcula qué comer, cuánto beber y qué llevar antes de entrenar o competir.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link to="/planner" className="rounded-full bg-fuel-500 px-6 py-3 text-center font-semibold text-white hover:bg-fuel-400">
+              <Link to="/planner" className="sf-btn bg-fuel-500 text-center text-white hover:bg-fuel-400">
                 Crear mi plan gratis
               </Link>
-              <Link to="/calculators" className="rounded-full border border-white/20 px-6 py-3 text-center font-semibold">
+              <Link to="/calculators" className="sf-btn border border-white/20 text-center">
                 Ver calculadoras
               </Link>
             </div>
@@ -58,7 +58,7 @@ export function HomePage() {
 
       <section className="sf-container grid gap-6 py-14 md:grid-cols-3">
         {[
-          ["1. Deporte", "Ciclismo, running o trail. El resto se irá abriendo sin rehacer la app."],
+          ["1. Deporte", "Ciclismo, running, trail, senderismo, triatlón o fútbol. El resto se irá abriendo sin rehacer la app."],
           ["2. Datos mínimos", "Duración, intensidad, peso y temperatura. Nada de historial clínico innecesario."],
           ["3. Tu plan", "Qué comer, cuándo beber, qué llevar y qué puedes usar de casa."],
         ].map(([title, text]) => (
@@ -78,6 +78,9 @@ export function HomePage() {
                 ["/sports/cycling", "Ciclismo"],
                 ["/sports/running", "Running"],
                 ["/sports/trail", "Trail"],
+                ["/sports/hiking", "Senderismo"],
+                ["/sports/triathlon", "Triatlón"],
+                ["/sports/football", "Fútbol"],
               ] as const
             ).map(([to, label]) => (
               <Link key={to} to={to} className="sf-card p-5 font-semibold hover:border-fuel-400">
@@ -146,7 +149,7 @@ export function HomePage() {
           <DisclaimerBanner />
         </div>
         <div className="mt-8 text-center">
-          <Link to="/planner" className="inline-block rounded-full bg-fuel-600 px-6 py-3 font-semibold text-white">
+          <Link to="/planner" className="sf-btn inline-flex bg-fuel-600 text-white">
             Crear mi plan gratis
           </Link>
         </div>

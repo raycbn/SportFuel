@@ -32,22 +32,30 @@ export function Layout() {
             <NavLink to={email ? "/plans" : "/login"} className="text-white/80 hover:text-white">
               {email ? "Mis planes" : "Entrar"}
             </NavLink>
-            <Link to="/planner" className="rounded-full bg-fuel-500 px-4 py-2 font-semibold text-white hover:bg-fuel-400">
+            <Link to="/planner" className="sf-tap inline-flex items-center rounded-full bg-fuel-500 px-4 py-2 font-semibold text-white hover:bg-fuel-400">
               Crear mi plan
             </Link>
           </nav>
-          <button type="button" className="rounded-lg px-3 py-2 text-sm md:hidden" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+          <button
+            type="button"
+            className="sf-tap inline-flex min-h-11 items-center rounded-lg px-3 text-sm md:hidden"
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+          >
             Menú
           </button>
         </div>
         {open ? (
-          <nav className="sf-container flex flex-col gap-3 pb-4 md:hidden" aria-label="Móvil">
+          <nav className="sf-container flex flex-col gap-1 pb-4 md:hidden" aria-label="Móvil">
             {nav.map((item) => (
-              <NavLink key={item.to} to={item.to} onClick={() => setOpen(false)} className="py-1 text-white/90">
+              <NavLink key={item.to} to={item.to} onClick={() => setOpen(false)} className="sf-tap flex items-center text-white/90">
                 {item.label}
               </NavLink>
             ))}
-            <Link to="/planner" onClick={() => setOpen(false)} className="rounded-full bg-fuel-500 px-4 py-2 text-center font-semibold">
+            <NavLink to={email ? "/plans" : "/login"} onClick={() => setOpen(false)} className="sf-tap flex items-center text-white/90">
+              {email ? "Mis planes" : "Entrar"}
+            </NavLink>
+            <Link to="/planner" onClick={() => setOpen(false)} className="sf-btn mt-2 bg-fuel-500 text-center text-white">
               Crear mi plan
             </Link>
           </nav>

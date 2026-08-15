@@ -28,5 +28,27 @@ describe("success criterion UI", () => {
     expect(screen.getByText(/g\/h$/)).toBeInTheDocument();
     expect(screen.getByText(/ml\/h$/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Ver plan completo/i })).toBeInTheDocument();
+    expect(screen.getByText(/Reparte raciones pequeñas/i)).toBeInTheDocument();
+  });
+
+  it("shows football strategy without opening the full plan", () => {
+    const plan = buildNutritionPlan({
+      sport: "football",
+      durationMinutes: 90,
+      intensity: "moderate",
+      bodyMassKg: 75,
+      temperatureC: 25,
+      goal: "train",
+      fuelPreference: "mixed",
+    });
+    render(
+      <HelmetProvider>
+        <MemoryRouter>
+          <PlanResult plan={plan} onNeedAuth={() => undefined} />
+        </MemoryRouter>
+      </HelmetProvider>,
+    );
+    expect(screen.getByText(/partido intermitente/i)).toBeInTheDocument();
+    expect(screen.getByText(/bandas de resistencia continua/i)).toBeInTheDocument();
   });
 });

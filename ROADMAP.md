@@ -1,13 +1,16 @@
 # ROADMAP
 
-## Fase 1 — hecha en esta entrega
+## Fase 1 — hecha
 Planner rápido, ciclismo/running/trail, CHO, hidratación, timeline, lista, coste, despensa, SEO inicial, tests del motor.
 
-## Fase 2 — en curso
-- Senderismo y triatlón con notas específicas (sin fingir T1/T2).
+## Fase 2 — hecha en esta entrega
+- Senderismo, triatlón y fútbol en motor **y** en la UI de resultado (notas, callouts, CTAs `?sport=`).
 - Tasa de sudoración se guarda y entra en el planner (`?sweat=`).
-- Planes guardados: locales (nube opcional, pendiente de Firebase).
-- Hosting: Netlify reclamado; falta visibilidad pública + token de deploy.
+- Planes guardados locales, filtro todos/favoritos, vacío con CTA.
+- Pulido móvil (targets 44px, timeline apilada, menú con Mis planes).
+- Landings SEO extra (senderismo, triatlón, fútbol, qué llevar 3 h).
+- Hosting público en Netlify. Auto-deploy GitHub: falta vincular el repo o secretos de Actions (ver `DEPLOY.md`).
+- Search Console: meta opcional `VITE_GSC_VERIFICATION`; la propiedad la crea el dueño.
 
 ## Fase 3
 Afiliación real (ofertas `enabled` con URLs verificadas) + catálogo de precios editado.

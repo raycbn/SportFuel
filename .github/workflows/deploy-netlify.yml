@@ -2,7 +2,9 @@ name: Deploy Netlify
 
 on:
   push:
-    branches: [main, cursor/sportfuel-mvp-4dfc]
+    branches:
+      - main
+      - "cursor/sportfuel-mvp-4dfc"
   workflow_dispatch:
 
 jobs:

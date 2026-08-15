@@ -1,41 +1,52 @@
-# Cómo seguir con la web (después de reclamar Netlify)
+# Cómo seguir con la web
 
-Última revisión: 2026-08-15. Si `/planner` da 404, falta un deploy nuevo tras reclamar el sitio.
+Última revisión: 2026-08-15.
 
-## 1. Haz el sitio público (ahora mismo da 401)
+Sitio público: https://tranquil-basbousa-7fec55.netlify.app  
+Admin: https://app.netlify.com/projects/tranquil-basbousa-7fec55
 
-Al reclamar un drop, Netlify suele dejar el proyecto **privado / solo equipo**. Por eso el mundo ve “Login Redirect”.
+## Qué ya está hecho
 
-En [app.netlify.com](https://app.netlify.com):
+- El drop anónimo está reclamado y el sitio es **público**.
+- Rewrite SPA (`/* → /index.html`) para que `/planner` no dé 404.
+- `VITE_SITE_URL` apunta a la URL de Netlify.
+- Deploy por CLI desde este entorno cuando hay sesión de Netlify.
 
-1. Abre el sitio `tranquil-basbousa-7fec55`.
-2. **Project configuration → Access & security / Project visibility**.
-3. Pon visibilidad **Public** (o desactiva “Team login” / password).
-4. Recarga https://tranquil-basbousa-7fec55.netlify.app — debe cargar SportFuel sin login.
+## Auto-deploy GitHub → Netlify
 
-## 2. Conecta GitHub para que cada push se publique
+El API no puede vincular el repo sin la **Netlify GitHub App**. Hasta que la instales, cada push **no** construye solo.
 
-Opción A — panel Netlify (la más simple):
+### Opción A — panel Netlify (recomendada)
 
-1. **Project configuration → Build & deploy → Import repository** (o *Link repository*).
-2. Repo: `raycbn/SportFuel`.
-3. Branch: `main` cuando merges el PR, o `cursor/sportfuel-mvp-4dfc` mientras tanto.
+1. [Link repository](https://app.netlify.com/projects/tranquil-basbousa-7fec55/configuration/deploys) → Import / Link repository.
+2. Autoriza la app de GitHub en `raycbn/SportFuel`.
+3. Branch de producción: `main` (o `cursor/sportfuel-mvp-4dfc` mientras el PR esté abierto).
 4. Build command: `npm run build`
 5. Publish directory: `dist`
 6. Variable: `VITE_SITE_URL=https://tranquil-basbousa-7fec55.netlify.app`
+7. Opcional: `VITE_GSC_VERIFICATION=` (código de Search Console, solo el token).
 
-Opción B — GitHub Action (ya está el workflow):
+### Opción B — GitHub Action
 
-1. En el repo: **Settings → Secrets and variables → Actions**.
-2. Crea `NETLIFY_AUTH_TOKEN` (User settings de Netlify → Applications → New access token).
-3. Crea `NETLIFY_SITE_ID` = `506ccb87-455e-4323-964e-b9ed61c6475e`.
-4. El workflow `.github/workflows/deploy-netlify.yml` publica en cada push.
+El workflow `.github/workflows/deploy-netlify.yml` prueba, construye y publica en cada push a `main` o a `cursor/sportfuel-mvp-4dfc`.
 
-## 3. Qué estamos construyendo ahora
+1. Repo → **Settings → Secrets and variables → Actions**.
+2. `NETLIFY_AUTH_TOKEN`: token de Netlify (User settings → Applications → New access token).
+3. `NETLIFY_SITE_ID`: `506ccb87-455e-4323-964e-b9ed61c6475e`.
 
-- Fase 2: senderismo y triatlón más útiles, tasa de sudoración que entra en el planner, planes guardados (ya locales).
-- Aún no: Stripe, afiliación real, Garmin, app nativa.
+Si faltan secretos, el job hace test/build y **omite** el deploy (no falla).
 
-## 4. Dominio propio (cuando quieras)
+Hay un **build hook** en el panel de Netlify. Sin repo vinculado no puede clonar Git; no lo pongas en el código.
 
-Netlify → Domain management → Add domain. Sigue siendo 0 € si usas el `*.netlify.app`.
+## Search Console
+
+1. Añade la propiedad URL `https://tranquil-basbousa-7fec55.netlify.app`.
+2. Elige verificación por meta tag.
+3. Copia solo el valor de `content` a `VITE_GSC_VERIFICATION` (local o env de Netlify).
+4. Redeploy. Envía `https://tranquil-basbousa-7fec55.netlify.app/sitemap.xml`.
+
+No se puede completar GSC sin tu cuenta de Google.
+
+## Dominio propio
+
+Netlify → Domain management → Add domain. Sigue siendo 0 € si usas `*.netlify.app`.

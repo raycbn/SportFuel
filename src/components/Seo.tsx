@@ -13,11 +13,13 @@ const SITE = siteUrl();
 
 export function Seo({ title, description, path, type = "website", jsonLd = [] }: SeoProps) {
   const url = `${SITE}${path}`;
+  const gsc = import.meta.env.VITE_GSC_VERIFICATION;
   return (
     <Helmet>
       <html lang="es" />
       <title>{title}</title>
       <meta name="description" content={description} />
+      {gsc ? <meta name="google-site-verification" content={gsc} /> : null}
       <link rel="canonical" href={url} />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />

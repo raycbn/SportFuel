@@ -122,6 +122,14 @@ describe("success criterion plan", () => {
     expect(tri.preActivity.foodExamples.some((item) => item.name.toLowerCase().includes("bici") || item.reason.toLowerCase().includes("bici"))).toBe(true);
   });
 
+  it("uses football intermittent notes without an ultra protocol", () => {
+    const plan = buildNutritionPlan(base({ sport: "football", durationMinutes: 90 }));
+    expect(plan.calculatorReady).toBe(true);
+    expect(plan.during.strategySummary).toMatch(/intermitente/i);
+    expect(plan.during.events.some((event) => /descanso/i.test(event.label))).toBe(true);
+    expect(plan.preActivity.foodExamples.some((item) => item.reason.toLowerCase().includes("fútbol") || item.name.toLowerCase().includes("descanso"))).toBe(true);
+  });
+
   it("uses measured sweat rate inside the hydration range", () => {
     const plan = buildNutritionPlan(base({ sweatRateLPerHour: 1.0 }));
     expect(plan.hydration.usedMeasuredSweatRate).toBe(true);
