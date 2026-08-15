@@ -1,0 +1,49 @@
+import { Link } from "react-router-dom";
+import { Seo } from "@/components/Seo";
+import { track } from "@/lib/analytics";
+
+export function PremiumPage() {
+  return (
+    <div className="sf-container max-w-3xl py-12">
+      <Seo
+        title="Premium — SportFuel"
+        description="Precios provisionales 4,99 €/mes o 39,99 €/año. Los pagos no están activos hasta validar el producto."
+        path="/premium"
+      />
+      <h1 className="font-display text-4xl">Premium (provisional)</h1>
+      <p className="mt-4 text-ink-700">
+        Los pagos no están implementados. Stripe queda preparado en arquitectura. No se cobra nada en esta fase.
+      </p>
+      <div className="mt-8 grid gap-4 md:grid-cols-2">
+        <article className="sf-card p-6">
+          <h2 className="font-display text-2xl">Gratis</h2>
+          <ul className="mt-3 list-disc pl-5 text-ink-700">
+            <li>Calculadoras y modo rápido</li>
+            <li>Planes básicos</li>
+            <li>Tasa de sudoración</li>
+            <li>Lista de compra básica</li>
+          </ul>
+        </article>
+        <article className="sf-card p-6">
+          <h2 className="font-display text-2xl">Premium</h2>
+          <p className="mt-1 text-fuel-700">4,99 €/mes o 39,99 €/año</p>
+          <ul className="mt-3 list-disc pl-5 text-ink-700">
+            <li>Planes ilimitados e historial</li>
+            <li>Personalización avanzada</li>
+            <li>Más deportes y plantillas</li>
+            <li>Trial futuro de 7 días</li>
+          </ul>
+          <button
+            className="mt-6 rounded-full bg-ink-900 px-5 py-3 text-white"
+            onClick={() => track("premium_clicked", { source: "premium_page" })}
+          >
+            Avisarme cuando exista (sin pago)
+          </button>
+        </article>
+      </div>
+      <Link to="/planner" className="mt-8 inline-block text-fuel-700">
+        Seguir con el plan gratis →
+      </Link>
+    </div>
+  );
+}

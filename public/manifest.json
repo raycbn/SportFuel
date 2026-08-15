@@ -1,0 +1,17 @@
+{
+  "name": "SportFuel",
+  "short_name": "SportFuel",
+  "description": "Prepara tu próxima salida: qué comer, cuánto beber y qué llevar.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3fbf6",
+  "theme_color": "#0c1f18",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

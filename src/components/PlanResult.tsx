@@ -1,0 +1,249 @@
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { encodePublicPlan, sourceList, type NutritionPlan } from "@/features/nutrition-engine";
+import { track } from "@/lib/analytics";
+import { getSessionEmail } from "@/lib/auth";
+import { formatDuration, GOAL_LABELS, INTENSITY_LABELS, PREFERENCE_LABELS, SPORT_LABELS } from "@/lib/labels";
+import { savePlan } from "@/lib/plans-store";
+import { DisclaimerBanner } from "./DisclaimerBanner";
+
+export function PlanResult({ plan, onNeedAuth }: { plan: NutritionPlan; onNeedAuth: () => void }) {
+  const [openFull, setOpenFull] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const sources = useMemo(() => {
+    const ids = [
+      ...plan.carbohydrate.meta.evidenceSources,
+      ...plan.hydration.meta.evidenceSources,
+      ...plan.electrolytes.meta.evidenceSources,
+    ];
+    return sourceList([...new Set(ids)]);
+  }, [plan]);
+
+  if (!plan.calculatorReady) {
+    return (
+      <section className="sf-card space-y-4 p-6">
+        <h2 className="font-display text-2xl">No podemos personalizar este plan</h2>
+        <p>{plan.blockedReason}</p>
+        <DisclaimerBanner />
+      </section>
+    );
+  }
+
+  const shareUrl = `/plan/${plan.shareSlug}?p=${encodeURIComponent(encodePublicPlan(plan))}`;
+
+  return (
+    <div className="space-y-6">
+      <section className="sf-card overflow-hidden">
+        <div className="bg-ink-900 px-5 py-6 text-white sm:px-8">
+          <p className="text-xs uppercase tracking-[0.2em] text-fuel-300">Tu plan</p>
+          <h2 className="mt-2 font-display text-3xl">
+            {SPORT_LABELS[plan.sport]} · {formatDuration(plan.durationMinutes)}
+          </h2>
+          <p className="mt-2 text-white/70">
+            Intensidad {INTENSITY_LABELS[plan.intensity].toLowerCase()} · {plan.temperatureC} °C · {GOAL_LABELS[plan.goal]} ·{" "}
+            {PREFERENCE_LABELS[plan.fuelPreference]}
+          </p>
+        </div>
+        <div className="grid gap-4 p-5 sm:grid-cols-3 sm:p-8">
+          <Metric label="Carbohidratos objetivo" value={plan.summary.carbohydratePerHourLabel} />
+          <Metric label="Hidratación orientativa" value={plan.summary.hydrationPerHourLabel} />
+          <Metric label="Electrolitos" value={plan.summary.electrolyteLabel} />
+        </div>
+        <div className="flex flex-col gap-3 px-5 pb-6 sm:flex-row sm:px-8">
+          <button type="button" className="rounded-full bg-fuel-600 px-5 py-3 font-semibold text-white" onClick={() => setOpenFull(true)}>
+            Ver plan completo
+          </button>
+          <button
+            type="button"
+            className="rounded-full border border-ink-900/10 px-5 py-3 font-semibold"
+            onClick={() => {
+              const email = getSessionEmail();
+              if (!email) {
+                onNeedAuth();
+                return;
+              }
+              savePlan(email, plan, encodePublicPlan(plan));
+              setSaved(true);
+              track("plan_saved", { sport: plan.sport });
+            }}
+          >
+            {saved ? "Plan guardado" : "Guarda este plan gratis"}
+          </button>
+          <Link
+            to={shareUrl}
+            className="rounded-full border border-ink-900/10 px-5 py-3 text-center font-semibold"
+            onClick={() => track("plan_shared", { sport: plan.sport })}
+          >
+            Compartir
+          </Link>
+        </div>
+      </section>
+
+      {openFull ? (
+        <div className="space-y-6">
+          <section className="sf-card space-y-4 p-6">
+            <h3 className="font-display text-xl">Timeline</h3>
+            <ol className="space-y-3">
+              {plan.during.events.map((event) => (
+                <li key={`${event.minute}-${event.label}`} className="flex gap-4 rounded-2xl bg-fuel-50 px-4 py-3">
+                  <span className="w-16 shrink-0 font-semibold text-fuel-700">{event.label}</span>
+                  <div>
+                    <p>{event.items.join(" ")}</p>
+                    {event.carbohydrateGrams ? <p className="text-sm text-ink-700">≈ {event.carbohydrateGrams} g CHO · {event.fluidMl} ml</p> : null}
+                    {event.note ? <p className="text-sm text-ink-700">{event.note}</p> : null}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          <section className="sf-card space-y-3 p-6">
+            <h3 className="font-display text-xl">Antes</h3>
+            <p>{plan.preActivity.timingLabel}</p>
+            <p>
+              Ejemplo práctico: {plan.preActivity.exampleMealGramsMin}–{plan.preActivity.exampleMealGramsMax} g de carbohidratos (
+              {plan.preActivity.carbohydrateGPerKgMin}–{plan.preActivity.carbohydrateGPerKgMax} g/kg), no una dieta clínica.
+            </p>
+            <ul className="list-disc space-y-1 pl-5">
+              {plan.preActivity.foodExamples.map((item) => (
+                <li key={item.name}>
+                  <strong>{item.name}.</strong> {item.reason}
+                </li>
+              ))}
+            </ul>
+            <p className="text-sm text-ink-700">{plan.preActivity.hydrationNote}</p>
+          </section>
+
+          <section className="sf-card space-y-3 p-6">
+            <h3 className="font-display text-xl">Después</h3>
+            <p>{plan.recovery.carbohydrateNote}</p>
+            <p>{plan.recovery.proteinNote}</p>
+            <p>{plan.recovery.hydrationNote}</p>
+            <ul className="list-disc pl-5">
+              {plan.recovery.mealExamples.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="sf-card space-y-3 p-6">
+            <h3 className="font-display text-xl">Qué tienes en casa</h3>
+            {plan.pantry.used.length === 0 ? (
+              <p>Selecciona alimentos en el formulario para adaptar el plan a lo que ya tienes.</p>
+            ) : (
+              <ul className="space-y-2">
+                {plan.pantry.used.map((item) => (
+                  <li key={item.productId} className="flex justify-between gap-3 rounded-xl bg-fuel-50 px-3 py-2">
+                    <span>
+                      {item.servings} × {item.name}
+                    </span>
+                    <span className="text-sm text-ink-700">
+                      ≈ {item.carbohydrateG} g CHO
+                      {item.fluidMl ? ` · ${item.fluidMl} ml` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="text-sm">Cobertura estimada: {plan.pantry.coveragePercent}%</p>
+            {plan.pantry.missing.length > 0 ? (
+              <p className="text-sm text-ink-700">Falta: {plan.pantry.missing.join(" ")}</p>
+            ) : null}
+          </section>
+
+          <section className="sf-card space-y-3 p-6">
+            <h3 className="font-display text-xl">Lista de compra</h3>
+            <div className="grid gap-4 md:grid-cols-3">
+              {(["food", "drink", "supplement"] as const).map((group) => (
+                <div key={group}>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-fuel-700">
+                    {group === "food" ? "Comida" : group === "drink" ? "Bebida" : "Suplementos"}
+                  </p>
+                  <ul className="mt-2 space-y-2">
+                    {plan.shoppingList
+                      .filter((item) => item.category === group)
+                      .map((item) => (
+                        <li key={item.name}>
+                          <strong>{item.name}</strong> · {item.quantityLabel}
+                          {item.optional ? " (opcional)" : ""}
+                          {item.notes ? <span className="block text-sm text-ink-700">{item.notes}</span> : null}
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="sf-card space-y-3 p-6">
+            <h3 className="font-display text-xl">¿Cuánto me costará alimentar esta salida?</h3>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Metric label="Económica" value={`${plan.cost.economyEur.toFixed(1)} €`} />
+              <Metric label="Intermedia" value={`${plan.cost.midEur.toFixed(1)} €`} />
+              <Metric label="Deportiva" value={`${plan.cost.sportEur.toFixed(1)} €`} />
+            </div>
+            <p className="text-sm text-ink-700">{plan.cost.disclaimer}</p>
+          </section>
+
+          <section className="sf-card space-y-3 p-6">
+            <h3 className="font-display text-xl">Por qué estos rangos</h3>
+            <p>{plan.carbohydrate.why}</p>
+            <p>{plan.hydration.why}</p>
+            <p>{plan.electrolytes.why}</p>
+            <ul className="list-disc pl-5 text-sm text-ink-700">
+              {[...plan.carbohydrate.assumptions, ...plan.hydration.assumptions].map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            {[...plan.carbohydrate.warnings, ...plan.hydration.warnings, ...plan.electrolytes.warnings].map((item) => (
+              <p key={item} className="text-sm">
+                {item}
+              </p>
+            ))}
+          </section>
+
+          <section className="sf-card space-y-3 p-6">
+            <h3 className="font-display text-xl">Fuentes</h3>
+            <ul className="space-y-2 text-sm">
+              {sources.map((source) => (
+                <li key={source.id}>
+                  <a className="font-medium text-fuel-700 underline" href={source.url} target="_blank" rel="noreferrer">
+                    {source.shortName}
+                  </a>
+                  : {source.title} ({source.year}).
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      ) : null}
+
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <button
+          type="button"
+          className="rounded-full border px-4 py-2 text-sm"
+          onClick={async () => {
+            const url = `${window.location.origin}${shareUrl}`;
+            await navigator.clipboard.writeText(url);
+            setCopied(true);
+            track("plan_shared", { method: "copy" });
+          }}
+        >
+          {copied ? "Enlace copiado" : "Copiar tarjeta: “Mi plan para esta salida”"}
+        </button>
+        <p className="text-xs text-ink-700">El enlace no incluye peso, email ni datos privados.</p>
+      </div>
+      <DisclaimerBanner compact />
+    </div>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl bg-fuel-50 px-4 py-4">
+      <p className="text-xs uppercase tracking-wide text-fuel-700">{label}</p>
+      <p className="mt-1 font-display text-lg font-semibold leading-snug">{value}</p>
+    </div>
+  );
+}
