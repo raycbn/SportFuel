@@ -21,13 +21,13 @@ const pages: Record<string, { sport: SportId; intro: string; extra: string }> = 
   },
   hiking: {
     sport: "hiking",
-    intro: "El senderismo suele ser de menor intensidad absoluta: más comida real y menos lógica de gel de competición.",
-    extra: "Las reglas están disponibles, con ajuste a la baja documentado.",
+    intro: "El senderismo suele ser de menor intensidad absoluta: más comida real, cadencia más holgada y menos lógica de gel de competición.",
+    extra: "El motor baja el punto del rango de carbohidratos (Jeukendrup: intensidad absoluta baja) y no inventa gramos extra por cada metro de desnivel.",
   },
   triathlon: {
     sport: "triathlon",
-    intro: "El triatlón combina segmentos con distinta facilidad para comer. Esta versión usa el marco de resistencia; el detalle por segmento llegará después.",
-    extra: "No fingimos un plan de T1/T2 hasta tener reglas específicas.",
+    intro: "El triatlón mezcla un segmento donde casi no se come (natación) con uno fácil (bici) y uno sensible de estómago (carrera).",
+    extra: "Usamos el marco de resistencia de Jeukendrup/ACSM sobre el tiempo total. No fingimos un split T1/T2: la ingesta práctica va sobre todo en bici.",
   },
 };
 
@@ -73,7 +73,7 @@ export function SportDetailPage() {
       <h1 className="font-display text-4xl">{SPORT_LABELS[page.sport]}</h1>
       <p className="mt-4 text-lg text-ink-700">{page.intro}</p>
       <p className="mt-4">{page.extra}</p>
-      <Link to="/planner" className="mt-8 inline-block rounded-full bg-fuel-600 px-5 py-3 font-semibold text-white">
+      <Link to={`/planner?sport=${page.sport}`} className="mt-8 inline-block rounded-full bg-fuel-600 px-5 py-3 font-semibold text-white">
         Crear plan de {SPORT_LABELS[page.sport].toLowerCase()}
       </Link>
     </div>

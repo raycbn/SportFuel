@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://sportfuel.app/sitemap.xml
+Sitemap: https://tranquil-basbousa-7fec55.netlify.app/sitemap.xml

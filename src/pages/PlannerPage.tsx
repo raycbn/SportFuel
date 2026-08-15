@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { PlanResult } from "@/components/PlanResult";
 import { Seo } from "@/components/Seo";
 import {
@@ -17,26 +17,43 @@ import {
 } from "@/features/nutrition-engine";
 import { track } from "@/lib/analytics";
 import { GOAL_LABELS, INTENSITY_LABELS, PREFERENCE_LABELS, SPORT_LABELS, SPORT_READY } from "@/lib/labels";
+import { clearSweatRate, readSweatRate } from "@/lib/sweat-store";
 
 const STEPS = ["Deporte", "Duración", "Intensidad", "Condiciones", "Opcional"];
 
 export function PlannerPage() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
   const [step, setStep] = useState(0);
   const [plan, setPlan] = useState<NutritionPlan | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState<PlannerInput>({
-    sport: "cycling",
-    durationMinutes: 180,
-    intensity: "moderate",
-    bodyMassKg: 75,
-    temperatureC: 25,
-    goal: "train",
-    fuelPreference: "mixed",
-    availableFoodIds: [],
+  const [form, setForm] = useState<PlannerInput>(() => {
+    const sportParam = params.get("sport");
+    const sport = SPORT_READY.includes(sportParam as SportId) ? (sportParam as SportId) : "cycling";
+    const sweatParam = Number(params.get("sweat"));
+    const stored = readSweatRate();
+    const sweat = Number.isFinite(sweatParam) && sweatParam >= 0.2 && sweatParam <= 3.5 ? sweatParam : stored?.litersPerHour;
+    return {
+      sport,
+      durationMinutes: sport === "hiking" ? 240 : sport === "triathlon" ? 150 : 180,
+      intensity: "moderate",
+      bodyMassKg: 75,
+      temperatureC: 25,
+      goal: "train",
+      fuelPreference: sport === "hiking" ? "real-food" : "mixed",
+      availableFoodIds: [],
+      sweatRateLPerHour: sweat,
+    };
   });
 
   const issues = useMemo(() => validatePlannerInput(form), [form]);
+  const storedSweat = readSweatRate();
+
+  useEffect(() => {
+    if (params.get("sport") || params.get("sweat")) {
+      setStep(params.get("sweat") ? 4 : 0);
+    }
+  }, [params]);
 
   function update<K extends keyof PlannerInput>(key: K, value: PlannerInput[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -179,6 +196,29 @@ export function PlannerPage() {
                   );
                 })}
               </div>
+              <NumberField
+                label="Tasa de sudoración (L/h, opcional)"
+                value={form.sweatRateLPerHour ?? 0}
+                min={0}
+                max={3.5}
+                onChange={(value) => update("sweatRateLPerHour", value >= 0.2 ? value : undefined)}
+              />
+              {storedSweat ? (
+                <p className="text-xs text-ink-700">
+                  Última medición en este dispositivo: {storedSweat.litersPerHour} L/h.{" "}
+                  <button type="button" className="underline" onClick={() => { clearSweatRate(); update("sweatRateLPerHour", undefined); }}>
+                    Quitar
+                  </button>
+                </p>
+              ) : (
+                <p className="text-xs text-ink-700">
+                  Si no la tienes, el motor usa un rango por temperatura. Mídela en{" "}
+                  <Link className="text-fuel-700 underline" to="/calculators/sweat-rate">
+                    /calculators/sweat-rate
+                  </Link>
+                  .
+                </p>
+              )}
               <label className="flex items-start gap-2 text-sm">
                 <input
                   type="checkbox"

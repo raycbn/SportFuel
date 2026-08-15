@@ -1,0 +1,31 @@
+name: Deploy Netlify
+
+on:
+  push:
+    branches: [main, cursor/sportfuel-mvp-4dfc]
+  workflow_dispatch:
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+        env:
+          VITE_SITE_URL: https://tranquil-basbousa-7fec55.netlify.app
+      - name: Deploy to Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ] || [ -z "$NETLIFY_SITE_ID" ]; then
+            echo "Sin NETLIFY_AUTH_TOKEN o NETLIFY_SITE_ID: tests/build OK, deploy omitido."
+            exit 0
+          fi
+          npx -y netlify-cli deploy --prod --dir=dist --site "$NETLIFY_SITE_ID"

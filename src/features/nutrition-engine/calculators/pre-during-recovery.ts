@@ -41,7 +41,19 @@ const RECOVERY_META = {
   ],
 };
 
-function examplesFor(preference: FuelPreference): FoodExample[] {
+function examplesFor(preference: FuelPreference, sport?: PlannerInput["sport"]): FoodExample[] {
+  if (sport === "hiking") {
+    return [
+      { name: "Bocadillo + fruta", reason: "En senderismo suele haber más tiempo y ganas de comida real que de geles." },
+      { name: "Frutos secos o dátiles", reason: "Fácil de llevar; no sustituye agua ni una comida si la jornada es larga." },
+    ];
+  }
+  if (sport === "triathlon") {
+    return [
+      { name: "Desayuno familiar 2–3 h antes", reason: "La natación no es un buen momento para comer; llega con glucógeno ya cubierto." },
+      { name: "Bebida con carbohidratos lista para el segmento de bici", reason: "Jeukendrup (2011) sitúa la bici como la ventana práctica de ingesta en triatlón." },
+    ];
+  }
   if (preference === "sports-products") {
     return [
       { name: "Tostada o barrita + bebida con carbohidratos", reason: "Fácil de dosificar y habitual antes de competir." },
@@ -73,7 +85,7 @@ export function calculatePreActivity(input: PlannerInput): PreActivityPlan {
     exampleMealGramsMax: roundTo(maxG * input.bodyMassKg, 5),
     hydrationNote:
       "El objetivo es empezar euhidratado (orina clara/pálida, comidas y bebidas habituales). ACSM sugiere hidratar con varias horas de margen si hace falta, no beber un volumen enorme justo al salir.",
-    foodExamples: examplesFor(input.fuelPreference),
+    foodExamples: examplesFor(input.fuelPreference, input.sport),
     assumptions: [
       "Se usa el rango ACSM/IOC de 1–4 g/kg en las 1–4 h previas, recortado a un intervalo práctico recreativo.",
       "No se construye una dieta clínica ni se asumen alergias.",
@@ -99,12 +111,22 @@ export function calculateDuring(
   carbohydrate: CarbohydrateTarget,
   hydration: HydrationTarget,
 ): DuringActivityPlan {
+  const startNote =
+    input.sport === "triathlon"
+      ? "En el agua casi no se come. Prepara bidones y raciones para la bici."
+      : input.sport === "hiking"
+        ? "Lleva comida real accesible. No hace falta un gel en el minuto 0."
+        : "No hace falta “cargar” un gel en el minuto 0 si acabas de comer.";
+
   const events: TimelineEvent[] = [
     {
       minute: 0,
-      label: "Salida",
-      items: ["Empieza hidratado y con el primer bidón/alimento a mano."],
-      note: "No hace falta “cargar” un gel en el minuto 0 si acabas de comer.",
+      label: input.sport === "triathlon" ? "Salida / natación" : "Salida",
+      items:
+        input.sport === "triathlon"
+          ? ["Empieza hidratado. Reserva la ingesta principal para el segmento de bici."]
+          : ["Empieza hidratado y con el primer bidón/alimento a mano."],
+      note: startNote,
     },
   ];
 
@@ -122,7 +144,7 @@ export function calculateDuring(
     };
   }
 
-  const step = input.durationMinutes >= 240 ? 40 : 30;
+  const step = input.sport === "hiking" || input.durationMinutes >= 240 ? 40 : 30;
   const choPerEvent = roundTo((carbohydrate.gramsPerHourTypical * step) / 60, 5);
   const fluidPerEvent = roundTo((hydration.mlPerHourTypical * step) / 60, 25);
   const lastIntake = Math.max(step, input.durationMinutes - 15);
@@ -144,11 +166,18 @@ export function calculateDuring(
     items: ["Pasa a la estrategia de recuperación: fluido, comida habitual y, si toca, proteína."],
   });
 
+  const sportSummary =
+    input.sport === "triathlon"
+      ? " No inventamos un split T1/T2: el g/h es del tiempo total. Come sobre todo en bici; en carrera a pie baja la tolerancia."
+      : input.sport === "hiking"
+        ? " En senderismo prioriza comida real y un ritmo de ingesta más holgado que en competición."
+        : "";
+
   return {
     events,
-    strategySummary: carbohydrate.multipleTransportableRecommended
+    strategySummary: (carbohydrate.multipleTransportableRecommended
       ? "Reparte carbohidratos e hidratación a lo largo de la sesión. Si te acercas a >60 g/h, combina fuentes (p. ej. bebida + fruta o gel con distinta composición)."
-      : "Reparte raciones pequeñas y regulares. Evita acumular todo al final.",
+      : "Reparte raciones pequeñas y regulares. Evita acumular todo al final.") + sportSummary,
     why: "Una cadencia cada 30–40 min traduce el objetivo g/h y ml/h a acciones concretas, sin saturar de eventos.",
     meta: DURING_META,
   };

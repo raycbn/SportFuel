@@ -4,6 +4,7 @@ import { DisclaimerBanner } from "@/components/DisclaimerBanner";
 import { Seo, breadcrumbLd, faqLd } from "@/components/Seo";
 import { calculateSweatRate, validateSweatRateInput, type SweatRateResult } from "@/features/nutrition-engine";
 import { track } from "@/lib/analytics";
+import { saveSweatRate } from "@/lib/sweat-store";
 
 const faqs = [
   { q: "¿Es una prueba clínica?", a: "No. Es una estimación de campo con limitaciones. No diagnostica deshidratación." },
@@ -49,7 +50,9 @@ export function SweatRatePage() {
               return;
             }
             setError(null);
-            setResult(calculateSweatRate(input));
+            const next = calculateSweatRate(input);
+            setResult(next);
+            if (next.sweatRateLPerHour > 0) saveSweatRate(next.sweatRateLPerHour);
             track("sweat_test_completed", { duration: durationMinutes });
           }}
         >
@@ -82,8 +85,11 @@ export function SweatRatePage() {
               </p>
             ))}
             <p className="mt-4 text-sm">{result.clinicalDisclaimer}</p>
-            <Link to="/planner" className="mt-4 inline-block font-semibold text-fuel-700">
-              Llevar este dato al planner →
+            <Link
+              to={`/planner?sweat=${encodeURIComponent(String(result.sweatRateLPerHour))}`}
+              className="mt-4 inline-block font-semibold text-fuel-700"
+            >
+              Usar {result.sweatRateLPerHour} L/h en mi plan →
             </Link>
           </section>
         ) : (

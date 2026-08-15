@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { siteUrl } from "@/lib/site";
 
 interface SeoProps {
   title: string;
@@ -8,7 +9,7 @@ interface SeoProps {
   jsonLd?: Record<string, unknown>[];
 }
 
-const SITE = "https://sportfuel.app";
+const SITE = siteUrl();
 
 export function Seo({ title, description, path, type = "website", jsonLd = [] }: SeoProps) {
   const url = `${SITE}${path}`;

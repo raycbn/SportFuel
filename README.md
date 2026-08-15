@@ -35,6 +35,12 @@ npm run build
 - La UI no calcula; el motor sí.
 - Firebase y Stripe son opcionales y no están activados.
 
+## Sitio de prueba
+
+https://tranquil-basbousa-7fec55.netlify.app
+
+Si ves un login de Netlify, el proyecto está en visibilidad privada. Pasos en [DEPLOY.md](./DEPLOY.md).
+
 ## Documentación
 
 - [PROJECT_AUDIT.md](./PROJECT_AUDIT.md)

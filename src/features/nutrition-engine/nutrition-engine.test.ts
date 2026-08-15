@@ -111,6 +111,23 @@ describe("success criterion plan", () => {
     expect(plan.blockedReason).toMatch(/profesional sanitario/);
   });
 
+  it("uses hiking and triathlon notes without inventing segment splits", () => {
+    const hike = buildNutritionPlan(base({ sport: "hiking", durationMinutes: 240, intensity: "easy", fuelPreference: "real-food" }));
+    const tri = buildNutritionPlan(base({ sport: "triathlon", durationMinutes: 150, goal: "perform" }));
+    expect(hike.carbohydrate.gramsPerHourTypical).toBeLessThan(
+      buildNutritionPlan(base({ durationMinutes: 240, intensity: "easy" })).carbohydrate.gramsPerHourTypical + 0.01,
+    );
+    expect(hike.during.strategySummary).toMatch(/comida real/i);
+    expect(tri.during.strategySummary).toMatch(/bici/i);
+    expect(tri.preActivity.foodExamples.some((item) => item.name.toLowerCase().includes("bici") || item.reason.toLowerCase().includes("bici"))).toBe(true);
+  });
+
+  it("uses measured sweat rate inside the hydration range", () => {
+    const plan = buildNutritionPlan(base({ sweatRateLPerHour: 1.0 }));
+    expect(plan.hydration.usedMeasuredSweatRate).toBe(true);
+    expect(plan.hydration.mlPerHourMax).toBeLessThanOrEqual(1000);
+  });
+
   it("adapts pantry matching to available foods", () => {
     const plan = buildNutritionPlan(base({ availableFoodIds: ["banana", "water", "dates"], fuelPreference: "real-food" }));
     expect(plan.pantry.used.length).toBeGreaterThan(0);

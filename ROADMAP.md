@@ -3,8 +3,11 @@
 ## Fase 1 — hecha en esta entrega
 Planner rápido, ciclismo/running/trail, CHO, hidratación, timeline, lista, coste, despensa, SEO inicial, tests del motor.
 
-## Fase 2
-Senderismo/triatlón más ricos, tasa de sudoración ya existe (ampliar UX), guardar planes en la nube opcional.
+## Fase 2 — en curso
+- Senderismo y triatlón con notas específicas (sin fingir T1/T2).
+- Tasa de sudoración se guarda y entra en el planner (`?sweat=`).
+- Planes guardados: locales (nube opcional, pendiente de Firebase).
+- Hosting: Netlify reclamado; falta visibilidad pública + token de deploy.
 
 ## Fase 3
 Afiliación real (ofertas `enabled` con URLs verificadas) + catálogo de precios editado.
