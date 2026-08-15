@@ -9,7 +9,7 @@ Planner rápido, ciclismo/running/trail, CHO, hidratación, timeline, lista, cos
 - Planes guardados locales, filtro todos/favoritos, vacío con CTA.
 - Pulido móvil (targets 44px, timeline apilada, menú con Mis planes).
 - Landings SEO extra (senderismo, triatlón, fútbol, qué llevar 3 h).
-- Hosting público en Netlify. Auto-deploy GitHub: falta vincular el repo o secretos de Actions (ver `DEPLOY.md`).
+- Hosting público en Netlify. Repo GitHub **vinculado**; falta la deploy key / app de Netlify en GitHub (ver `DEPLOY.md`).
 - Search Console: meta opcional `VITE_GSC_VERIFICATION`; la propiedad la crea el dueño.
 
 ## Fase 3
