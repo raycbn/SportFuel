@@ -12,7 +12,7 @@ export function CalculatorsPage() {
   return (
     <div className="sf-container py-12">
       <Seo
-        title="Calculadoras de nutrición deportiva — SportFuel"
+        title="Calculadoras de nutrición deportiva — PedalMap Fuel"
         description="Calculadoras locales de carbohidratos, hidratación y tasa de sudoración. Sin cuenta y sin IA."
         path="/calculators"
         jsonLd={[breadcrumbLd([{ name: "Inicio", path: "/" }, { name: "Calculadoras", path: "/calculators" }])]}

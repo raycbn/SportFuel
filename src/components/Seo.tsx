@@ -65,7 +65,7 @@ export function webAppLd() {
   return {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: "SportFuel",
+    name: "PedalMap Fuel",
     applicationCategory: "HealthApplication",
     operatingSystem: "Web",
     offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },

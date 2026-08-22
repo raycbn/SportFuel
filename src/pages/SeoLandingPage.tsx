@@ -96,7 +96,7 @@ export const SEO_LANDINGS: Landing[] = [
     description: "Rangos g/h para rodajes y marchas, con fuentes ACSM/IOC y aviso de tolerancia.",
     lead: "La bici permite acercarse al techo del rango mejor que correr, pero el techo sigue siendo un techo, no un objetivo vanity.",
     points: ["30–60 g/h en 1–2,5 h.", "Transición en 3 h.", "Múltiples transportadores si pasas de 60 g/h."],
-    faqs: [{ q: "¿120 g/h?", a: "Existe en estudios y consensos recientes para muy largo + intestino entrenado. No es el default de SportFuel." }],
+    faqs: [{ q: "¿120 g/h?", a: "Existe en estudios y consensos recientes para muy largo + intestino entrenado. No es el default de PedalMap Fuel." }],
     to: "/planner?sport=cycling",
   },
   {
@@ -171,7 +171,7 @@ export function SeoLandingPage({ path }: { path: string }) {
   return (
     <div className="sf-container max-w-3xl py-12">
       <Seo
-        title={`${landing.title} — SportFuel`}
+        title={`${landing.title} — PedalMap Fuel`}
         description={landing.description}
         path={landing.path}
         jsonLd={[

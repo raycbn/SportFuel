@@ -1,9 +1,8 @@
 # Cómo seguir con la web
 
-Última revisión: 2026-08-15.
+Última revisión: 2026-08-22.
 
-Sitio público: https://tranquil-basbousa-7fec55.netlify.app  
-Admin: https://app.netlify.com/projects/tranquil-basbousa-7fec55  
+Sitio público: https://fuel.pedalmap.es  
 Repo: https://github.com/raycbn/SportFuel (`main`)
 
 ## Auto-deploy GitHub → Netlify — activo
@@ -13,11 +12,11 @@ El sitio está vinculado a `raycbn/SportFuel` con la **Netlify GitHub App** (`in
 - Rama de producción: `main`
 - Build: `npm run build`
 - Publish: `dist`
-- Variable: `VITE_SITE_URL=https://tranquil-basbousa-7fec55.netlify.app`
+- Variable: `VITE_SITE_URL=https://fuel.pedalmap.es`
 
-Un push a `main` publica solo. Primer build con clone OK: commit `5892607`, deploy `6a80203c80229408c1d34804`.
+Un push a `main` publica solo.
 
-Panel: [Build & deploy](https://app.netlify.com/projects/tranquil-basbousa-7fec55/configuration/deploys)
+Panel: Netlify → proyecto vinculado.
 
 ## Qué más hay hecho
 
@@ -35,10 +34,10 @@ en **Settings → Secrets and variables → Actions**.
 
 ## Search Console
 
-1. Propiedad URL `https://tranquil-basbousa-7fec55.netlify.app`
+1. Propiedad URL `https://fuel.pedalmap.es`
 2. Meta tag → valor en `VITE_GSC_VERIFICATION` (env de Netlify)
 3. Enviar `/sitemap.xml`
 
 ## Dominio propio
 
-Netlify → Domain management → Add domain. Sigue siendo 0 € con `*.netlify.app`.
+Netlify → Domain management → Add domain `fuel.pedalmap.es`. Sigue siendo 0 € con `*.netlify.app`.

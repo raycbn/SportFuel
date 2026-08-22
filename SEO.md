@@ -2,7 +2,7 @@
 
 Idioma: **es-ES**. Intención: “qué como / bebo / llevo” antes de una salida.
 
-Sitio canónico actual: `https://tranquil-basbousa-7fec55.netlify.app`
+Sitio canónico actual: `https://fuel.pedalmap.es`
 
 ## Páginas de esta entrega
 

@@ -97,7 +97,7 @@ export function PlannerPage() {
   return (
     <div className="sf-container py-8 sm:py-12">
       <Seo
-        title="Crear mi plan — SportFuel"
+        title="Crear mi plan — PedalMap Fuel"
         description="Modo rápido: deporte, duración, intensidad, peso y temperatura. Recibe un plan de carbohidratos, hidratación y qué llevar."
         path="/planner"
       />

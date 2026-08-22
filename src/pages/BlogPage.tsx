@@ -6,7 +6,7 @@ export function BlogPage() {
   return (
     <div className="sf-container py-12">
       <Seo
-        title="Blog de nutrición deportiva — SportFuel"
+        title="Blog de nutrición deportiva — PedalMap Fuel"
         description="Artículos con fuentes sobre carbohidratos, hidratación, comida real y planes para ciclismo, running y trail."
         path="/blog"
         jsonLd={[breadcrumbLd([{ name: "Inicio", path: "/" }, { name: "Blog", path: "/blog" }])]}

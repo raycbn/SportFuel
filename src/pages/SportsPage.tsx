@@ -57,7 +57,7 @@ const pages: Record<string, { sport: SportId; intro: string; extra: string; poin
 export function SportsIndexPage() {
   return (
     <div className="sf-container py-12">
-      <Seo title="Deportes — SportFuel" description="Planes de nutrición para ciclismo, running, trail, senderismo, triatlón y fútbol." path="/sports" />
+      <Seo title="Deportes — PedalMap Fuel" description="Planes de nutrición para ciclismo, running, trail, senderismo, triatlón y fútbol." path="/sports" />
       <h1 className="font-display text-4xl">Deportes</h1>
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {Object.entries(pages).map(([slug, page]) => (
@@ -88,7 +88,7 @@ export function SportDetailPage() {
   return (
     <div className="sf-container max-w-3xl py-12">
       <Seo
-        title={`Nutrición ${SPORT_LABELS[page.sport]} — SportFuel`}
+        title={`Nutrición ${SPORT_LABELS[page.sport]} — PedalMap Fuel`}
         description={page.intro}
         path={`/sports/${slug}`}
         jsonLd={[breadcrumbLd([{ name: "Inicio", path: "/" }, { name: "Deportes", path: "/sports" }, { name: SPORT_LABELS[page.sport], path: `/sports/${slug}` }])]}

@@ -1,8 +1,8 @@
-# PROJECT_AUDIT — SportFuel
+# PROJECT_AUDIT — PedalMap Fuel
 
 Fecha de auditoría: 2026-08-15  
 Revisión: 1.0  
-Estado del repositorio en el momento de la auditoría: **vacío** (solo `README.md` con el título `# SportFuel` y un commit inicial).
+Estado del repositorio en el momento de la auditoría: **vacío** (solo `README.md` con el título `# PedalMap Fuel` y un commit inicial).
 
 ## 1. Hallazgos del repositorio
 
@@ -60,7 +60,7 @@ No es un producto médico. No diagnostica, no trata, no prescribe dietas clínic
 - Sync Garmin / Wahoo / Strava
 - App nativa
 - Coaching humano
-- Comparativas “SportFuel vs X” (faltan datos primarios suficientes y actualizados para ser justos)
+ - Comparativas “PedalMap Fuel vs X” (faltan datos primarios suficientes y actualizados para ser justos)
 
 ## 5. Riesgos
 
@@ -74,7 +74,7 @@ No es un producto médico. No diagnostica, no trata, no prescribe dietas clínic
 
 ## 6. Competencia (resumen; detalle en COMPETITIVE_ANALYSIS.md)
 
-| Producto | Hueco que SportFuel puede ocupar |
+| Producto | Hueco que PedalMap Fuel puede ocupar |
 | --- | --- |
 | EatMyRide | Fuerte en Garmin/ciclismo; menos web ES sencilla y guest-first |
 | Fuelin | Coaching diario de pago; no es un calculador rápido gratuito |

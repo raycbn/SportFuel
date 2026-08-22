@@ -23,8 +23,8 @@ export function SweatRatePage() {
   return (
     <div className="sf-container grid gap-8 py-10 lg:grid-cols-2">
       <Seo
-        title="Calculadora de tasa de sudoración — SportFuel"
-        description="Estima tu tasa de sudoración con peso antes y después, líquido ingerido y duración. Fórmula y limitaciones incluidas."
+        title="Calculadora de tasa de sudoración — PedalMap Fuel"
+        description="Estima tu tasa de sudoración con peso antes y después, líquido y orina. Fórmula y limitaciones incluidas."
         path="/calculators/sweat-rate"
         jsonLd={[
           breadcrumbLd([
