@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://tranquil-basbousa-7fec55.netlify.app/sitemap.xml
+Sitemap: https://fuel.pedalmap.es/sitemap.xml

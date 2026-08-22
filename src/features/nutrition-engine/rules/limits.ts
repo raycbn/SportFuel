@@ -23,4 +23,4 @@ export const DISCLAIMER =
   "Las cantidades mostradas son estimaciones orientativas basadas en parámetros de actividad y referencias de nutrición deportiva. Las necesidades individuales pueden variar. Si tienes una condición médica, tomas medicación, estás embarazada o tienes necesidades nutricionales especiales, consulta con un profesional sanitario.";
 
 export const CLINICAL_BLOCK_MESSAGE =
-  "Has indicado una condición clínica relevante. SportFuel no personaliza planes en estos casos porque podría ser inadecuado o inseguro. Consulta con un profesional sanitario antes de cambiar tu alimentación, hidratación o uso de suplementos.";
+  "Has indicado una condición clínica relevante. PedalMap Fuel no personaliza planes en estos casos porque podría ser inadecuado o inseguro. Consulta con un profesional sanitario antes de cambiar tu alimentación, hidratación o uso de suplementos.";

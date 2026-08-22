@@ -6,7 +6,7 @@ export function AdminPage() {
   const events = readAnalytics();
   return (
     <div className="sf-container space-y-8 py-10">
-      <Seo title="Admin local — SportFuel" description="Gestión local de fuentes, reglas y productos de ejemplo." path="/admin" />
+      <Seo title="Admin local — PedalMap Fuel" description="Gestión local de fuentes, reglas y productos de ejemplo." path="/admin" />
       <h1 className="font-display text-3xl">Admin local</h1>
       <p className="text-ink-700">Sin backend. Sirve para revisar fuentes, catálogo y eventos de producto en este navegador.</p>
       <section className="sf-card p-6">

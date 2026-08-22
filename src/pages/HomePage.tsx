@@ -4,7 +4,7 @@ import { Seo, faqLd, webAppLd } from "@/components/Seo";
 
 const faqs = [
   {
-    q: "¿SportFuel sustituye a un nutricionista?",
+    q: "¿PedalMap Fuel sustituye a un nutricionista?",
     a: "No. Ofrece estimaciones orientativas a partir de duración, intensidad y referencias de nutrición deportiva. No diagnostica ni trata.",
   },
   {
@@ -25,7 +25,7 @@ export function HomePage() {
   return (
     <>
       <Seo
-        title="SportFuel — Prepara tu próxima salida"
+        title="PedalMap Fuel — Prepara tu próxima salida"
         description="Calcula qué comer, cuánto beber y qué llevar antes de entrenar o competir. Planes de nutrición e hidratación para ciclismo, running, trail, senderismo, triatlón y fútbol."
         path="/"
         jsonLd={[webAppLd(), faqLd(faqs)]}

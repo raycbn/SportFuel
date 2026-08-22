@@ -21,7 +21,7 @@ export function Layout() {
       <header className="sticky top-0 z-40 border-b border-white/10 bg-ink-900/95 text-white backdrop-blur">
         <div className="sf-container flex items-center justify-between gap-3 py-3">
           <Link to="/" className="font-display text-lg font-semibold tracking-tight">
-            SportFuel
+            PedalMap Fuel
           </Link>
           <nav className="hidden items-center gap-6 text-sm md:flex" aria-label="Principal">
             {nav.map((item) => (
@@ -67,7 +67,7 @@ export function Layout() {
       <footer className="border-t border-ink-900/10 bg-white">
         <div className="sf-container grid gap-6 py-10 text-sm text-ink-700 md:grid-cols-4">
           <div>
-            <p className="font-display text-base font-semibold text-ink-900">SportFuel</p>
+            <p className="font-display text-base font-semibold text-ink-900">PedalMap Fuel</p>
             <p className="mt-2 max-w-xs">Nutrición e hidratación para tu próxima salida. Estimaciones, no un producto médico.</p>
           </div>
           <div className="flex flex-col gap-2">

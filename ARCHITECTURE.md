@@ -1,4 +1,4 @@
-# ARCHITECTURE — SportFuel
+# ARCHITECTURE — PedalMap Fuel
 
 ## Vista general
 

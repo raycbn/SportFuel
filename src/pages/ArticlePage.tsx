@@ -19,7 +19,7 @@ export function ArticlePage() {
   return (
     <article className="sf-container max-w-3xl py-10">
       <Seo
-        title={`${article.title} — SportFuel`}
+        title={`${article.title} — PedalMap Fuel`}
         description={article.description}
         path={`/${article.slug.startsWith("que-") || article.slug.startsWith("nutricion") ? article.slug : `blog/${article.slug}`}`}
         type="article"
@@ -35,7 +35,7 @@ export function ArticlePage() {
             headline: article.title,
             datePublished: article.date,
             inLanguage: "es",
-            author: { "@type": "Organization", name: "SportFuel" },
+            author: { "@type": "Organization", name: "PedalMap Fuel" },
           },
           faqLd(article.faqs),
         ]}

@@ -6,8 +6,8 @@ export function PremiumPage() {
   return (
     <div className="sf-container max-w-3xl py-12">
       <Seo
-        title="Premium — SportFuel"
-        description="Precios provisionales 4,99 €/mes o 39,99 €/año. Los pagos no están activos hasta validar el producto."
+        title="Premium — PedalMap Fuel"
+        description="Planes ilimitados, historial y personalización avanzada. Trial futuro de 7 días."
         path="/premium"
       />
       <h1 className="font-display text-4xl">Premium (provisional)</h1>
