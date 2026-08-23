@@ -152,4 +152,36 @@ describe("PlannerPage PedalMap integration", () => {
     fireEvent.click(screen.getByRole("button", { name: /Continuar/i }));
     expect(screen.getByLabelText(/Temperatura \(°C\)/i)).toHaveValue(26);
   });
+
+  it("accepts decimal distance from PedalMap and preserves manual decimal edit", () => {
+    render(
+      <HelmetProvider>
+        <MemoryRouter initialEntries={["/planner?source=pedalmap&sport=cycling&distanceKm=21.68&durationMinutes=53&elevationGainM=95&temperatureC=26"]}>
+          <PlannerPage />
+        </MemoryRouter>
+      </HelmetProvider>,
+    );
+
+    const distanceInput = screen.getByLabelText(/Distancia \(km, opcional\)/i);
+    expect(distanceInput).toHaveValue(21.68);
+    expect(distanceInput).toHaveAttribute("step", "0.1");
+
+    fireEvent.change(distanceInput, { target: { value: "30.5" } });
+    expect(distanceInput).toHaveValue(30.5);
+  });
+
+  it("works with rounded decimal distance from PedalMap (21.6 km)", () => {
+    render(
+      <HelmetProvider>
+        <MemoryRouter initialEntries={["/planner?source=pedalmap&sport=cycling&distanceKm=21.6&durationMinutes=53&elevationGainM=95&temperatureC=26"]}>
+          <PlannerPage />
+        </MemoryRouter>
+      </HelmetProvider>,
+    );
+
+    expect(screen.getByLabelText(/Distancia \(km, opcional\)/i)).toHaveValue(21.6);
+    expect(screen.getByLabelText(/Duración \(min\)/i)).toHaveValue(53);
+    expect(screen.getByLabelText(/Desnivel \(m, opcional\)/i)).toHaveValue(95);
+    expect(screen.getByText(/Tu salida de PedalMap/i)).toBeInTheDocument();
+  });
 });
