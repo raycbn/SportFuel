@@ -16,6 +16,7 @@ import {
   validatePlannerInput,
 } from "@/features/nutrition-engine";
 import { track } from "@/lib/analytics";
+import { extractRouteSummary, parsePedalMapContext } from "@/lib/pedalmap-integration";
 import { GOAL_LABELS, INTENSITY_LABELS, PREFERENCE_LABELS, SPORT_LABELS, SPORT_READY } from "@/lib/labels";
 import { clearSweatRate, readSweatRate } from "@/lib/sweat-store";
 
@@ -28,19 +29,28 @@ function defaultDuration(sport: SportId): number {
   return 180;
 }
 
+function formatDuration(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m} min`;
+  if (m === 0) return `${h} h`;
+  return `${h} h ${m} min`;
+}
+
 export function PlannerPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [step, setStep] = useState(0);
   const [plan, setPlan] = useState<NutritionPlan | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const pedalMapContext = parsePedalMapContext(params);
+  const routeSummary = extractRouteSummary(pedalMapContext);
+
   const [form, setForm] = useState<PlannerInput>(() => {
     const sportParam = params.get("sport");
     const sport = SPORT_READY.includes(sportParam as SportId) ? (sportParam as SportId) : "cycling";
-    const sweatParam = Number(params.get("sweat"));
-    const stored = readSweatRate();
-    const sweat = Number.isFinite(sweatParam) && sweatParam >= 0.2 && sweatParam <= 3.5 ? sweatParam : stored?.litersPerHour;
-    return {
+    const sweatRate = readSweatRate()?.litersPerHour;
+    const base: PlannerInput = {
       sport,
       durationMinutes: defaultDuration(sport),
       intensity: "moderate",
@@ -49,8 +59,25 @@ export function PlannerPage() {
       goal: "train",
       fuelPreference: sport === "hiking" ? "real-food" : "mixed",
       availableFoodIds: [],
-      sweatRateLPerHour: sweat,
+      sweatRateLPerHour: sweatRate,
     };
+
+    if (!pedalMapContext) return base;
+
+    const applied: PlannerInput = { ...base };
+    if (pedalMapContext.sport) applied.sport = pedalMapContext.sport as PlannerInput["sport"];
+    if (Number.isFinite(pedalMapContext.durationMinutes) && pedalMapContext.durationMinutes > 0) {
+      applied.durationMinutes = Math.min(720, Math.max(15, Math.round(pedalMapContext.durationMinutes)));
+    }
+    if (pedalMapContext.distanceKm !== undefined) applied.distanceKm = pedalMapContext.distanceKm;
+    if (pedalMapContext.elevationGainM !== undefined) applied.elevationGainM = pedalMapContext.elevationGainM;
+    if (pedalMapContext.temperatureC !== undefined) applied.temperatureC = pedalMapContext.temperatureC;
+    if (pedalMapContext.intensity) applied.intensity = pedalMapContext.intensity as PlannerInput["intensity"];
+    if (pedalMapContext.goal) applied.goal = pedalMapContext.goal as PlannerInput["goal"];
+    if (pedalMapContext.bodyMassKg !== undefined) applied.bodyMassKg = pedalMapContext.bodyMassKg;
+    if (pedalMapContext.sweatRateLPerHour !== undefined) applied.sweatRateLPerHour = pedalMapContext.sweatRateLPerHour;
+
+    return applied;
   });
 
   const issues = useMemo(() => validatePlannerInput(form), [form]);
@@ -97,12 +124,46 @@ export function PlannerPage() {
   return (
     <div className="sf-container py-8 sm:py-12">
       <Seo
-        title="Crear mi plan — SportFuel"
-        description="Modo rápido: deporte, duración, intensidad, peso y temperatura. Recibe un plan de carbohidratos, hidratación y qué llevar."
+        title="Preparar mi salida — PedalMap Fuel"
+        description="Di qué deporte vas a hacer, cuánto durará y las condiciones. Recibe un plan con qué comer, cuánto beber y qué llevar."
         path="/planner"
       />
       <p className="text-sm text-fuel-700">Dime qué vas a hacer y te digo cómo prepararte.</p>
-      <h1 className="mt-2 font-display text-3xl sm:text-4xl">Crear mi plan</h1>
+      <h1 className="mt-2 font-display text-3xl sm:text-4xl">Preparar mi salida</h1>
+
+      {pedalMapContext && routeSummary ? (
+        <div className="mt-6 sf-card p-5 sm:p-6">
+          <p className="text-xs uppercase tracking-[0.2em] text-fuel-700">Tu salida de PedalMap</p>
+          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {routeSummary.distanceKm !== undefined ? (
+              <div>
+                <p className="text-xs text-ink-700">Distancia</p>
+                <p className="font-display text-lg font-semibold">{routeSummary.distanceKm.toLocaleString("es-ES")} km</p>
+              </div>
+            ) : null}
+            {routeSummary.elevationGainM !== undefined ? (
+              <div>
+                <p className="text-xs text-ink-700">Desnivel</p>
+                <p className="font-display text-lg font-semibold">+{routeSummary.elevationGainM.toLocaleString("es-ES")} m</p>
+              </div>
+            ) : null}
+            {routeSummary.durationMinutes !== undefined ? (
+              <div>
+                <p className="text-xs text-ink-700">Duración</p>
+                <p className="font-display text-lg font-semibold">{formatDuration(routeSummary.durationMinutes)}</p>
+              </div>
+            ) : null}
+            {routeSummary.temperatureC !== undefined ? (
+              <div>
+                <p className="text-xs text-ink-700">Temperatura</p>
+                <p className="font-display text-lg font-semibold">{routeSummary.temperatureC} ºC</p>
+              </div>
+            ) : null}
+          </div>
+          <p className="mt-3 text-xs text-ink-700">Puedes ajustar estos datos antes de preparar tu plan.</p>
+        </div>
+      ) : null}
+
       <ol className="mt-6 flex flex-wrap gap-2 text-xs" aria-label="Pasos">
         {STEPS.map((label, index) => (
           <li key={label} className={`rounded-full px-3 py-1 ${index === step ? "bg-ink-900 text-white" : "bg-white text-ink-700"}`}>
@@ -132,35 +193,31 @@ export function PlannerPage() {
                   <Choice key={sport} active={form.sport === sport} onClick={() => pickSport(sport as SportId)} label={SPORT_LABELS[sport]} />
                 ))}
               </div>
+              <div className="mt-4 space-y-4">
+                <NumberField label="Duración (min)" value={form.durationMinutes} min={15} max={720} onChange={(value) => update("durationMinutes", value)} />
+                {form.sport !== "football" ? (
+                  <NumberField
+                    label="Distancia (km, opcional)"
+                    value={form.distanceKm ?? 0}
+                    min={0}
+                    max={400}
+                    onChange={(value) => update("distanceKm", value || undefined)}
+                  />
+                ) : null}
+                {form.sport === "cycling" || form.sport === "trail" || form.sport === "hiking" ? (
+                  <NumberField
+                    label="Desnivel (m, opcional)"
+                    value={form.elevationGainM ?? 0}
+                    min={0}
+                    max={8000}
+                    onChange={(value) => update("elevationGainM", value || undefined)}
+                  />
+                ) : null}
+              </div>
             </fieldset>
           ) : null}
 
           {step === 1 ? (
-            <fieldset className="space-y-4">
-              <legend className="font-display text-xl">Duración</legend>
-              <NumberField label="Minutos" value={form.durationMinutes} min={15} max={720} onChange={(value) => update("durationMinutes", value)} />
-              {form.sport !== "football" ? (
-                <NumberField
-                  label="Distancia (km, opcional)"
-                  value={form.distanceKm ?? 0}
-                  min={0}
-                  max={400}
-                  onChange={(value) => update("distanceKm", value || undefined)}
-                />
-              ) : null}
-              {form.sport === "cycling" || form.sport === "trail" || form.sport === "hiking" ? (
-                <NumberField
-                  label="Desnivel (m, opcional)"
-                  value={form.elevationGainM ?? 0}
-                  min={0}
-                  max={8000}
-                  onChange={(value) => update("elevationGainM", value || undefined)}
-                />
-              ) : null}
-            </fieldset>
-          ) : null}
-
-          {step === 2 ? (
             <fieldset>
               <legend className="font-display text-xl">Intensidad</legend>
               <div className="mt-4 grid gap-2">
@@ -171,7 +228,7 @@ export function PlannerPage() {
             </fieldset>
           ) : null}
 
-          {step === 3 ? (
+          {step === 2 ? (
             <fieldset className="space-y-4">
               <legend className="font-display text-xl">Condiciones</legend>
               <NumberField label="Peso (kg)" value={form.bodyMassKg} min={40} max={150} onChange={(value) => update("bodyMassKg", value)} />
@@ -185,7 +242,7 @@ export function PlannerPage() {
             </fieldset>
           ) : null}
 
-          {step === 4 ? (
+          {step === 3 ? (
             <fieldset className="space-y-4">
               <legend className="font-display text-xl">Opcional</legend>
               <p className="text-sm text-ink-700">No hace falta para obtener un plan. Sirve para adaptarlo a tu estilo.</p>
@@ -284,7 +341,7 @@ export function PlannerPage() {
 
         <div>
           {plan ? (
-            <PlanResult plan={plan} onNeedAuth={() => navigate("/register?next=/planner")} />
+            <PlanResult plan={plan} onNeedAuth={() => navigate("/register?next=/planner")} routeSummary={routeSummary} />
           ) : (
             <aside className="sf-card p-6 text-ink-700">
               <p className="font-display text-xl text-ink-900">Modo rápido</p>
