@@ -5,12 +5,17 @@ const SESSION_KEY = "sportfuel.session.v1";
 
 export interface UserProfile {
   email: string;
-  passwordHash: string;
+  passwordHash?: string;
   createdAt: string;
   weightKg?: number;
   usualSports?: SportId[];
   fuelPreference?: FuelPreference;
+  provider?: AuthProvider;
+  pedalmapUid?: string;
+  displayName?: string;
 }
+
+export type AuthProvider = "local" | "pedalmap";
 
 async function hashPassword(password: string): Promise<string> {
   const data = new TextEncoder().encode(password);
@@ -90,6 +95,39 @@ export function deleteAccount(): void {
   if (!email) return;
   writeUsers(readUsers().filter((user) => user.email !== email));
   localStorage.removeItem(SESSION_KEY);
+}
+
+export async function handoffLogin(params: {
+  email: string;
+  pedalmapUid: string;
+  displayName?: string | null;
+}): Promise<{ ok: true } | { ok: false; message: string }> {
+  const normalized = params.email.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+    return { ok: false, message: "Email inválido." };
+  }
+  const users = readUsers();
+  const existing = users.find((user) => user.email === normalized);
+  if (existing) {
+    existing.provider = "pedalmap";
+    existing.pedalmapUid = params.pedalmapUid;
+    if (params.displayName && !existing.usualSports?.length) {
+      existing.displayName = params.displayName;
+    }
+    writeUsers(users);
+    localStorage.setItem(SESSION_KEY, normalized);
+    return { ok: true };
+  }
+  users.push({
+    email: normalized,
+    createdAt: new Date().toISOString(),
+    provider: "pedalmap",
+    pedalmapUid: params.pedalmapUid,
+    displayName: params.displayName ?? undefined,
+  });
+  writeUsers(users);
+  localStorage.setItem(SESSION_KEY, normalized);
+  return { ok: true };
 }
 
 export function firebaseConfigured(): boolean {
