@@ -23,7 +23,7 @@ function AuthForm({ mode }: { mode: "login" | "register" }) {
   return (
     <div className="sf-container max-w-md py-12">
       <Seo
-        title={mode === "login" ? "Entrar — SportFuel" : "Crear cuenta — SportFuel"}
+        title={mode === "login" ? "Entrar — PedalMap Fuel" : "Crear cuenta — PedalMap Fuel"}
         description="Registro opcional para guardar planes. El calculador funciona sin cuenta."
         path={mode === "login" ? "/login" : "/register"}
       />

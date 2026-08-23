@@ -1,4 +1,4 @@
-# SportFuel
+# PedalMap Fuel
 
 Aplicación web para planificar **nutrición e hidratación** antes, durante y después de una actividad deportiva. Independiente de PedalMap: código, identidad, usuarios y datos propios.
 
@@ -15,7 +15,8 @@ Un usuario anónimo puede: **Ciclismo → 3 h → intensidad moderada → 75 kg 
 - Calculadora de tasa de sudoración
 - Plan compartible **sin peso ni email**
 - Cuentas locales para guardar historial
-- Blog, landings SEO, privacidad y disclaimer
+- SEO, blog y páginas legales
+- Firebase y Stripe opcionales
 
 ## Stack
 
@@ -34,12 +35,6 @@ npm run build
 - No se inventan recomendaciones: cada regla tiene fuentes y fecha de revisión.
 - La UI no calcula; el motor sí.
 - Firebase y Stripe son opcionales y no están activados.
-
-## Sitio de prueba
-
-https://tranquil-basbousa-7fec55.netlify.app
-
-Cada push a `main` se publica solo (Netlify GitHub App). Detalles en [DEPLOY.md](./DEPLOY.md).
 
 ## Documentación
 

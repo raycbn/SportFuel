@@ -11,7 +11,7 @@ Revisión: **2026-08-15**. No se copian textos extensos de las fuentes. Cada reg
 
 ## Fuentes utilizadas
 
-| ID | Fuente | Aplicación en SportFuel | Limitaciones |
+| ID | Fuente | Aplicación en PedalMap Fuel | Limitaciones |
 | --- | --- | --- | --- |
 | thomas-2016-acsm | Thomas DT, Erdman KA, Burke LM. *Nutrition and Athletic Performance*. Med Sci Sports Exerc. 2016. [PubMed](https://pubmed.ncbi.nlm.nih.gov/26891166/) | Bandas de CHO por duración; comida previa 1–4 g/kg; recuperación de glucógeno ~1–1,2 g/kg/h cuando hay prisa | Documento de 2016; no individualiza por cada deporte recreativo |
 | sawka-2007-acsm-fluid | Sawka MN et al. *Exercise and Fluid Replacement*. 2007. [PubMed](https://pubmed.ncbi.nlm.nih.gov/17277604/) | Hidratación individual; evitar >2 % pérdida de masa; no sobrebeber; test de sudor de campo | Variabilidad enorme; no da un ml/h universal |

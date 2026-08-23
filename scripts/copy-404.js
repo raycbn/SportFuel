@@ -1,13 +1,18 @@
-import { copyFileSync, existsSync } from "fs";
-import { join } from "path";
+import { copyFileSync, existsSync } from "node:fs";
 
-const src = join(process.cwd(), "dist", "index.html");
-const dst = join(process.cwd(), "dist", "404.html");
+const src = "dist/index.html";
+const dest = "dist/404.html";
 
-if (existsSync(src)) {
-  copyFileSync(src, dst);
-  console.log(`Copied ${src} → ${dst}`);
-} else {
-  console.error("dist/index.html not found");
+if (!existsSync(src)) {
+  console.error(`Build output missing: ${src}`);
   process.exit(1);
 }
+
+copyFileSync(src, dest);
+
+if (!existsSync(dest)) {
+  console.error(`Failed to create: ${dest}`);
+  process.exit(1);
+}
+
+console.log(`Copied ${src} → ${dest}`);

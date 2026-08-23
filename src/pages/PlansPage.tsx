@@ -35,7 +35,7 @@ export function PlansPage() {
 
   return (
     <div className="sf-container space-y-8 py-10">
-      <Seo title="Mis planes — SportFuel" description="Historial local de planes guardados." path="/plans" />
+      <Seo title="Mis planes — PedalMap Fuel" description="Historial local de planes guardados." path="/plans" />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-3xl">Mis planes</h1>
         <button className="sf-tap text-sm underline" onClick={() => { logoutLocal(); setTick((v) => v + 1); }}>

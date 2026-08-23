@@ -40,7 +40,7 @@ export function SharePage() {
   return (
     <div className="sf-container max-w-2xl py-10 sm:py-12">
       <Seo
-        title={`${title} — SportFuel`}
+        title={`${title} — PedalMap Fuel`}
         description={`${decoded.carbohydratePerHourLabel}. Estrategia pública sin peso ni email.`}
         path="/plan/compartido"
       />

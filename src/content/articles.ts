@@ -25,7 +25,7 @@ export const ARTICLES: Article[] = [
     ],
     faqs: [
       { q: "¿Tengo que comer un gel antes de correr 40 minutos?", a: "No. En esfuerzos cortos las reservas endógenas suelen bastar. Un gel no es obligatorio." },
-      { q: "¿Y si me sienta mal el desayuno?", a: "Prioriza alimentos que ya hayas probado. SportFuel no asume alergias ni construye dietas clínicas." },
+      { q: "¿Y si me sienta mal el desayuno?", a: "Prioriza alimentos que ya hayas probado. PedalMap Fuel no asume alergias ni construye dietas clínicas." },
     ],
     sources: [
       { name: "Thomas et al., 2016. Nutrition and Athletic Performance", url: "https://pubmed.ncbi.nlm.nih.gov/26891166/" },
@@ -58,7 +58,7 @@ export const ARTICLES: Article[] = [
     body: [
       "ACSM 2016 y el marco de Burke/Jeukendrup describen, de forma resumida: poco o nada por debajo de ~45–75 min; 30–60 g/h entre 1 y 2,5 h; hasta 90 g/h en esfuerzos más largos con múltiples transportadores.",
       "Eso no es una receta universal. La intensidad absoluta baja, la tolerancia digestiva y el objetivo (terminar vs competir) cambian el punto del rango. Jeukendrup (2011) advierte que atletas más lentos pueden no necesitar el techo del intervalo.",
-      "Intakes de 90–120 g/h aparecen en literatura reciente (p. ej. revisiones 2022 y consenso SEÑ 2025) ligados a entrenamiento intestinal. SportFuel no los usa como valor por defecto recreativo.",
+      "Intakes de 90–120 g/h aparecen en literatura reciente (p. ej. revisiones 2022 y consenso SEÑ 2025) ligados a entrenamiento intestinal. PedalMap Fuel no los usa como valor por defecto recreativo.",
     ],
     faqs: [
       { q: "¿30–60 g/h vale para todo el mundo?", a: "No. Es el intervalo de consenso para 1–2,5 h de ejercicio exigente, no una dosis fija." },
@@ -172,7 +172,7 @@ export const ARTICLES: Article[] = [
     description: "Lista práctica de comida, bebida y extras, con cantidades orientativas.",
     date: "2026-08-15",
     body: [
-      "Tres horas caen en el límite 2,5–3 h de las guías: el motor de SportFuel usa un rango de transición, no un salto automático a 90 g/h.",
+      "Tres horas caen en el límite 2,5–3 h de las guías: el motor de PedalMap Fuel usa un rango de transición, no un salto automático a 90 g/h.",
       "Una lista típica (no obligatoria): 2–3 piezas de fruta o equivalente, pan o barritas, 2–3 bidones, y algo de sodio si hace calor.",
       "El coste puede ir de comida real barata a geles de ejemplo. Ninguna marca es necesaria.",
     ],
@@ -204,9 +204,9 @@ export const ARTICLES: Article[] = [
       "Error 1: tratar 60 g/h como ley. Es un punto dentro de un rango.",
       "Error 2: beber por encima del sudor “por si acaso”. ACSM advierte el riesgo de hiponatremia.",
       "Error 3: descubrir un gel nuevo el día de la marcha.",
-      "Error 4: pedir a una app que te trate una enfermedad. SportFuel no lo hace.",
+      "Error 4: pedir a una app que te trate una enfermedad. PedalMap Fuel no lo hace.",
     ],
-    faqs: [{ q: "¿SportFuel usa IA para inventar el plan?", a: "No. Es un motor de reglas determinista con fuentes." }],
+    faqs: [{ q: "¿PedalMap Fuel usa IA para inventar el plan?", a: "No. Es un motor de reglas determinista con fuentes." }],
     sources: [
       { name: "Sawka et al., 2007", url: "https://pubmed.ncbi.nlm.nih.gov/17277604/" },
       { name: "Thomas et al., 2016", url: "https://pubmed.ncbi.nlm.nih.gov/26891166/" },

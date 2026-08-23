@@ -10,7 +10,7 @@ Fecha: 2026-08-15. Fuentes públicas (sitios y fichas de app). No se copia produ
 - **Modelo:** app móvil + wearables + suscripción.
 - **Fortalezas:** integración hardware, planificación sobre ruta, marca consolidada.
 - **Carencias para nuestro usuario:** no es una web ES guest-first; la personalización fuerte vive en Premium; menos énfasis en comida real / coste de la salida / transparencia de fuentes.
-- **Oportunidad SportFuel:** planner web inmediato, español, reglas auditables.
+ - **Oportunidad PedalMap Fuel:** planner web inmediato, español, reglas auditables.
 
 ## Fuelin
 
@@ -19,7 +19,7 @@ Fecha: 2026-08-15. Fuentes públicas (sitios y fichas de app). No se copia produ
 - **Precio (público):** Autopilot ≈ 29 USD/mes o 119 USD/año en materiales de pricing; coaching Copilot aparte. Mensajes de trial/7-day promise varían según página.
 - **Modelo:** suscripción de coaching nutricional.
 - **Fortalezas:** día completo, recetas, marca de élite.
-- **Carencias:** no es un calculador rápido gratuito; SportFuel **no** entra en dietas de pérdida de peso (Fuelin sí menciona composición corporal en marketing). No usamos IA.
+ - **Carencias:** no es un calculador rápido gratuito; PedalMap Fuel **no** entra en dietas de pérdida de peso (Fuelin sí menciona composición corporal en marketing). No usamos IA.
 - **Oportunidad:** “solo esta salida”, 30 segundos, 0 €.
 
 ## FlöFuel
@@ -38,7 +38,7 @@ Fecha: 2026-08-15. Fuentes públicas (sitios y fichas de app). No se copia produ
 
 ## Otras menciones
 
-Herramientas de fueling con IA (p. ej. comparativas 2025–2026 tipo MAVR) existen. SportFuel se diferencia precisamente por **no** usar IA de pago.
+Herramientas de fueling con IA (p. ej. comparativas 2025–2026 tipo MAVR) existen. PedalMap Fuel se diferencia precisamente por **no** usar IA de pago.
 
 ## Diferenciación que sí construimos
 
@@ -50,4 +50,4 @@ Herramientas de fueling con IA (p. ej. comparativas 2025–2026 tipo MAVR) exist
 6. Calculadoras SEO útiles  
 7. Motor con `ruleVersion` + fuentes  
 
-No se publican comparativas “SportFuel vs X” en la web hasta tener datos propios verificables.
+No se publican comparativas “PedalMap Fuel vs X” en la web hasta tener datos propios verificables.

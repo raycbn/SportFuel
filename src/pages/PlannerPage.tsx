@@ -124,8 +124,8 @@ export function PlannerPage() {
   return (
     <div className="sf-container py-8 sm:py-12">
       <Seo
-        title="Preparar mi salida — PedalMap Fuel"
-        description="Di qué deporte vas a hacer, cuánto durará y las condiciones. Recibe un plan con qué comer, cuánto beber y qué llevar."
+        title="Crear mi plan — PedalMap Fuel"
+        description="Modo rápido: deporte, duración, intensidad, peso y temperatura. Recibe un plan de carbohidratos, hidratación y qué llevar."
         path="/planner"
       />
       <p className="text-sm text-fuel-700">Dime qué vas a hacer y te digo cómo prepararte.</p>

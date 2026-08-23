@@ -1,6 +1,6 @@
 {
-  "name": "SportFuel",
-  "short_name": "SportFuel",
+  "name": "PedalMap Fuel",
+  "short_name": "PedalMap Fuel",
   "description": "Prepara tu próxima salida: qué comer, cuánto beber y qué llevar.",
   "start_url": "/",
   "display": "standalone",
