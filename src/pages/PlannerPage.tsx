@@ -201,6 +201,7 @@ export function PlannerPage() {
                     value={form.distanceKm ?? 0}
                     min={0}
                     max={400}
+                    step={0.1}
                     onChange={(value) => update("distanceKm", value || undefined)}
                   />
                 ) : null}
@@ -378,12 +379,14 @@ function NumberField({
   value,
   min,
   max,
+  step,
   onChange,
 }: {
   label: string;
   value: number;
   min: number;
   max: number;
+  step?: number;
   onChange: (value: number) => void;
 }) {
   return (
@@ -394,6 +397,7 @@ function NumberField({
         inputMode="decimal"
         min={min}
         max={max}
+        step={step}
         value={Number.isFinite(value) ? value : ""}
         onChange={(event) => onChange(Number(event.target.value))}
         className="sf-tap mt-1 w-full rounded-2xl border border-ink-900/10 px-4 py-3"
