@@ -5,6 +5,7 @@ import { track } from "@/lib/analytics";
 import { getSessionEmail } from "@/lib/auth";
 import { formatDuration, GOAL_LABELS, INTENSITY_LABELS, PREFERENCE_LABELS, SPORT_LABELS } from "@/lib/labels";
 import { savePlan } from "@/lib/plans-store";
+import { type RouteSummary } from "@/lib/pedalmap-integration";
 import { DisclaimerBanner } from "./DisclaimerBanner";
 
 const SPORT_CALLOUTS: Partial<Record<SportId, string>> = {
@@ -13,7 +14,7 @@ const SPORT_CALLOUTS: Partial<Record<SportId, string>> = {
   football: "Fútbol: partido intermitente. Hidratación al borde y en el descanso, no un protocolo de ultra.",
 };
 
-export function PlanResult({ plan, onNeedAuth }: { plan: NutritionPlan; onNeedAuth: () => void }) {
+export function PlanResult({ plan, onNeedAuth, routeSummary }: { plan: NutritionPlan; onNeedAuth: () => void; routeSummary?: RouteSummary | null }) {
   const [openFull, setOpenFull] = useState(false);
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -37,22 +38,41 @@ export function PlanResult({ plan, onNeedAuth }: { plan: NutritionPlan; onNeedAu
   }
 
   const shareUrl = `/plan/${plan.shareSlug}?p=${encodeURIComponent(encodePublicPlan(plan))}`;
-
   const sportCallout = SPORT_CALLOUTS[plan.sport];
 
   return (
     <div id="resultado" className="space-y-6">
+      {routeSummary ? (
+        <section className="sf-card overflow-hidden">
+          <div className="bg-ink-900 px-5 py-6 text-white sm:px-8">
+            <p className="text-xs uppercase tracking-[0.2em] text-fuel-300">Tu salida</p>
+            <h2 className="mt-2 font-display text-3xl">
+              {SPORT_LABELS[plan.sport]} · {formatDuration(routeSummary.durationMinutes ?? plan.durationMinutes)}
+            </h2>
+            <p className="mt-2 text-white/70">
+              {routeSummary.distanceKm !== undefined && `${routeSummary.distanceKm.toLocaleString("es-ES")} km · `}
+              {routeSummary.elevationGainM !== undefined && `+${routeSummary.elevationGainM.toLocaleString("es-ES")} m · `}
+              Intensidad {INTENSITY_LABELS[plan.intensity].toLowerCase()} · {routeSummary.temperatureC ?? plan.temperatureC} °C · {GOAL_LABELS[plan.goal]} ·{" "}
+              {PREFERENCE_LABELS[plan.fuelPreference]}
+            </p>
+          </div>
+        </section>
+      ) : (
+        <section className="sf-card overflow-hidden">
+          <div className="bg-ink-900 px-5 py-6 text-white sm:px-8">
+            <p className="text-xs uppercase tracking-[0.2em] text-fuel-300">Tu plan</p>
+            <h2 className="mt-2 font-display text-3xl">
+              {SPORT_LABELS[plan.sport]} · {formatDuration(plan.durationMinutes)}
+            </h2>
+            <p className="mt-2 text-white/70">
+              Intensidad {INTENSITY_LABELS[plan.intensity].toLowerCase()} · {plan.temperatureC} °C · {GOAL_LABELS[plan.goal]} ·{" "}
+              {PREFERENCE_LABELS[plan.fuelPreference]}
+            </p>
+          </div>
+        </section>
+      )}
+
       <section className="sf-card overflow-hidden">
-        <div className="bg-ink-900 px-5 py-6 text-white sm:px-8">
-          <p className="text-xs uppercase tracking-[0.2em] text-fuel-300">Tu plan</p>
-          <h2 className="mt-2 font-display text-3xl">
-            {SPORT_LABELS[plan.sport]} · {formatDuration(plan.durationMinutes)}
-          </h2>
-          <p className="mt-2 text-white/70">
-            Intensidad {INTENSITY_LABELS[plan.intensity].toLowerCase()} · {plan.temperatureC} °C · {GOAL_LABELS[plan.goal]} ·{" "}
-            {PREFERENCE_LABELS[plan.fuelPreference]}
-          </p>
-        </div>
         <div className="grid gap-4 p-5 sm:grid-cols-3 sm:p-8">
           <Metric label="Carbohidratos objetivo" value={plan.summary.carbohydratePerHourLabel} />
           <Metric label="Hidratación orientativa" value={plan.summary.hydrationPerHourLabel} />
@@ -111,7 +131,72 @@ export function PlanResult({ plan, onNeedAuth }: { plan: NutritionPlan; onNeedAu
           </section>
 
           <section className="sf-card space-y-3 p-6">
-            <h3 className="font-display text-xl">Antes</h3>
+            <h3 className="font-display text-xl">Hidratación</h3>
+            <p>{plan.hydration.why}</p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Metric label="Hidratación/h" value={plan.summary.hydrationPerHourLabel} />
+              <Metric label="Sodio orientativo" value={plan.summary.electrolyteLabel} />
+              <Metric label="Temperatura" value={`${plan.temperatureC} °C`} />
+            </div>
+            <ul className="list-disc pl-5 text-sm text-ink-700">
+              {plan.hydration.assumptions.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            {plan.hydration.warnings.map((item) => (
+              <p key={item} className="text-sm">
+                {item}
+              </p>
+            ))}
+          </section>
+
+          <section className="sf-card space-y-3 p-6">
+            <h3 className="font-display text-xl">Qué preparar y llevar</h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-fuel-700">Qué tienes en casa</p>
+                {plan.pantry.used.length === 0 ? (
+                  <p className="mt-2 text-sm text-ink-700">Selecciona alimentos en el formulario para adaptar el plan a lo que ya tienes.</p>
+                ) : (
+                  <ul className="mt-2 space-y-2">
+                    {plan.pantry.used.map((item) => (
+                      <li key={item.productId} className="flex flex-col gap-1 rounded-xl bg-fuel-50 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                        <span>
+                          {item.servings} × {item.name}
+                        </span>
+                        <span className="text-sm text-ink-700">
+                          ≈ {item.carbohydrateG} g CHO
+                          {item.fluidMl ? ` · ${item.fluidMl} ml` : ""}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <p className="mt-2 text-sm">Cobertura estimada: {plan.pantry.coveragePercent}%</p>
+                {plan.pantry.missing.length > 0 ? (
+                  <p className="mt-2 text-sm text-ink-700">Falta: {plan.pantry.missing.join(" ")}</p>
+                ) : null}
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-fuel-700">Lista de compra</p>
+                <ul className="mt-2 space-y-2">
+                  {plan.shoppingList.map((item) => (
+                    <li key={item.name} className="flex flex-col gap-1 rounded-xl bg-fuel-50 px-3 py-3">
+                      <span className="font-medium">{item.name}</span>
+                      <span className="text-sm text-ink-700">
+                        {item.quantityLabel}
+                        {item.optional ? " (opcional)" : ""}
+                      </span>
+                      {item.notes ? <span className="text-sm text-ink-700">{item.notes}</span> : null}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section className="sf-card space-y-3 p-6">
+            <h3 className="font-display text-xl">Antes de salir</h3>
             <p>{plan.preActivity.timingLabel}</p>
             <p>
               Ejemplo práctico: {plan.preActivity.exampleMealGramsMin}–{plan.preActivity.exampleMealGramsMax} g de carbohidratos (
@@ -128,7 +213,7 @@ export function PlanResult({ plan, onNeedAuth }: { plan: NutritionPlan; onNeedAu
           </section>
 
           <section className="sf-card space-y-3 p-6">
-            <h3 className="font-display text-xl">Después</h3>
+            <h3 className="font-display text-xl">Después de la salida</h3>
             <p>{plan.recovery.carbohydrateNote}</p>
             <p>{plan.recovery.proteinNote}</p>
             <p>{plan.recovery.hydrationNote}</p>
@@ -137,55 +222,6 @@ export function PlanResult({ plan, onNeedAuth }: { plan: NutritionPlan; onNeedAu
                 <li key={item}>{item}</li>
               ))}
             </ul>
-          </section>
-
-          <section className="sf-card space-y-3 p-6">
-            <h3 className="font-display text-xl">Qué tienes en casa</h3>
-            {plan.pantry.used.length === 0 ? (
-              <p>Selecciona alimentos en el formulario para adaptar el plan a lo que ya tienes.</p>
-            ) : (
-              <ul className="space-y-2">
-                {plan.pantry.used.map((item) => (
-                  <li key={item.productId} className="flex flex-col gap-1 rounded-xl bg-fuel-50 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                    <span>
-                      {item.servings} × {item.name}
-                    </span>
-                    <span className="text-sm text-ink-700">
-                      ≈ {item.carbohydrateG} g CHO
-                      {item.fluidMl ? ` · ${item.fluidMl} ml` : ""}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p className="text-sm">Cobertura estimada: {plan.pantry.coveragePercent}%</p>
-            {plan.pantry.missing.length > 0 ? (
-              <p className="text-sm text-ink-700">Falta: {plan.pantry.missing.join(" ")}</p>
-            ) : null}
-          </section>
-
-          <section className="sf-card space-y-3 p-6">
-            <h3 className="font-display text-xl">Lista de compra</h3>
-            <div className="grid gap-4 md:grid-cols-3">
-              {(["food", "drink", "supplement"] as const).map((group) => (
-                <div key={group}>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-fuel-700">
-                    {group === "food" ? "Comida" : group === "drink" ? "Bebida" : "Suplementos"}
-                  </p>
-                  <ul className="mt-2 space-y-2">
-                    {plan.shoppingList
-                      .filter((item) => item.category === group)
-                      .map((item) => (
-                        <li key={item.name}>
-                          <strong>{item.name}</strong> · {item.quantityLabel}
-                          {item.optional ? " (opcional)" : ""}
-                          {item.notes ? <span className="block text-sm text-ink-700">{item.notes}</span> : null}
-                        </li>
-                      ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
           </section>
 
           <section className="sf-card space-y-3 p-6">
@@ -201,14 +237,12 @@ export function PlanResult({ plan, onNeedAuth }: { plan: NutritionPlan; onNeedAu
           <section className="sf-card space-y-3 p-6">
             <h3 className="font-display text-xl">Por qué estos rangos</h3>
             <p>{plan.carbohydrate.why}</p>
-            <p>{plan.hydration.why}</p>
-            <p>{plan.electrolytes.why}</p>
             <ul className="list-disc pl-5 text-sm text-ink-700">
-              {[...plan.carbohydrate.assumptions, ...plan.hydration.assumptions].map((item) => (
+              {plan.carbohydrate.assumptions.map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
-            {[...plan.carbohydrate.warnings, ...plan.hydration.warnings, ...plan.electrolytes.warnings].map((item) => (
+            {plan.carbohydrate.warnings.map((item) => (
               <p key={item} className="text-sm">
                 {item}
               </p>
