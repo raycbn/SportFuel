@@ -1,13 +1,46 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { buildNutritionPlan } from "@/features/nutrition-engine";
 import { PlanResult } from "@/components/PlanResult";
 import { PlannerPage } from "@/pages/PlannerPage";
+import { FuelAuthProvider } from "@/contexts/AuthContext";
+
+vi.mock("firebase/auth", () => {
+  const mockAuth = {
+    onAuthStateChanged: vi.fn(),
+    signInWithCustomToken: vi.fn(),
+    signOut: vi.fn(),
+    getIdToken: vi.fn(),
+  };
+  return {
+    getAuth: vi.fn(() => mockAuth),
+    onAuthStateChanged: mockAuth.onAuthStateChanged,
+    signInWithCustomToken: mockAuth.signInWithCustomToken,
+    signOut: mockAuth.signOut,
+    getIdToken: mockAuth.getIdToken,
+  };
+});
+
+function renderWithProviders(ui: React.ReactElement, options?: { initialEntries?: string[] }) {
+  return render(
+    <HelmetProvider>
+      <MemoryRouter initialEntries={options?.initialEntries}>
+        <FuelAuthProvider>{ui}</FuelAuthProvider>
+      </MemoryRouter>
+    </HelmetProvider>,
+  );
+}
 
 describe("success criterion UI", () => {
-  it("shows ranges, timeline and shopping list for the guest cycling plan", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.unstubAllEnvs();
+    vi.clearAllMocks();
+  });
+
+  it("shows ranges, timeline and shopping list for the guest cycling plan", async () => {
     const plan = buildNutritionPlan({
       sport: "cycling",
       durationMinutes: 180,
@@ -17,13 +50,7 @@ describe("success criterion UI", () => {
       goal: "train",
       fuelPreference: "mixed",
     });
-    render(
-      <HelmetProvider>
-        <MemoryRouter>
-          <PlanResult plan={plan} onNeedAuth={() => undefined} />
-        </MemoryRouter>
-      </HelmetProvider>,
-    );
+    renderWithProviders(<PlanResult plan={plan} onNeedAuth={() => undefined} />);
     expect(screen.getByText(/Tu plan/i)).toBeInTheDocument();
     expect(screen.getByText(/Carbohidratos objetivo/i)).toBeInTheDocument();
     expect(screen.getByText(/g\/h$/)).toBeInTheDocument();
@@ -32,7 +59,7 @@ describe("success criterion UI", () => {
     expect(screen.getByText(/Reparte carbohidratos e hidratación/i)).toBeInTheDocument();
   });
 
-  it("shows football strategy without opening the full plan", () => {
+  it("shows football strategy without opening the full plan", async () => {
     const plan = buildNutritionPlan({
       sport: "football",
       durationMinutes: 90,
@@ -42,26 +69,25 @@ describe("success criterion UI", () => {
       goal: "train",
       fuelPreference: "mixed",
     });
-    render(
-      <HelmetProvider>
-        <MemoryRouter>
-          <PlanResult plan={plan} onNeedAuth={() => undefined} />
-        </MemoryRouter>
-      </HelmetProvider>,
-    );
+    renderWithProviders(<PlanResult plan={plan} onNeedAuth={() => undefined} />);
     expect(screen.getByText(/partido intermitente/i)).toBeInTheDocument();
     expect(screen.getByText(/bandas de resistencia continua/i)).toBeInTheDocument();
   });
 });
 
 describe("PlannerPage PedalMap integration", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.unstubAllEnvs();
+    vi.clearAllMocks();
+  });
+
   it("prefills inputs from PedalMap URL (caso A)", () => {
-    render(
-      <HelmetProvider>
-        <MemoryRouter initialEntries={["/planner?source=pedalmap&sport=cycling&distanceKm=21.68&durationMinutes=53&elevationGainM=958&temperatureC=26"]}>
-          <PlannerPage />
-        </MemoryRouter>
-      </HelmetProvider>,
+    renderWithProviders(
+      <PlannerPage />,
+      {
+        initialEntries: ["/planner?source=pedalmap&sport=cycling&distanceKm=21.68&durationMinutes=53&elevationGainM=958&temperatureC=26"],
+      }
     );
 
     expect(screen.getByLabelText(/Duración \(min\)/i)).toHaveValue(53);
@@ -71,12 +97,11 @@ describe("PlannerPage PedalMap integration", () => {
   });
 
   it("prefills partial PedalMap URL and keeps defaults for missing fields (caso B)", () => {
-    render(
-      <HelmetProvider>
-        <MemoryRouter initialEntries={["/planner?source=pedalmap&sport=cycling&distanceKm=21.68&durationMinutes=53"]}>
-          <PlannerPage />
-        </MemoryRouter>
-      </HelmetProvider>,
+    renderWithProviders(
+      <PlannerPage />,
+      {
+        initialEntries: ["/planner?source=pedalmap&sport=cycling&distanceKm=21.68&durationMinutes=53"],
+      }
     );
 
     expect(screen.getByLabelText(/Duración \(min\)/i)).toHaveValue(53);
@@ -85,12 +110,11 @@ describe("PlannerPage PedalMap integration", () => {
   });
 
   it("does not overwrite manual edits after initial prefill (caso C)", () => {
-    render(
-      <HelmetProvider>
-        <MemoryRouter initialEntries={["/planner?source=pedalmap&sport=cycling&durationMinutes=53"]}>
-          <PlannerPage />
-        </MemoryRouter>
-      </HelmetProvider>,
+    renderWithProviders(
+      <PlannerPage />,
+      {
+        initialEntries: ["/planner?source=pedalmap&sport=cycling&durationMinutes=53"],
+      }
     );
 
     const durationInput = screen.getByLabelText(/Duración \(min\)/i);
@@ -101,13 +125,7 @@ describe("PlannerPage PedalMap integration", () => {
   });
 
   it("works normally without PedalMap params (caso D)", () => {
-    render(
-      <HelmetProvider>
-        <MemoryRouter initialEntries={["/planner"]}>
-          <PlannerPage />
-        </MemoryRouter>
-      </HelmetProvider>,
-    );
+    renderWithProviders(<PlannerPage />, { initialEntries: ["/planner"] });
 
     expect(screen.getByLabelText(/Duración \(min\)/i)).toHaveValue(180);
     expect(screen.getByLabelText(/Distancia \(km, opcional\)/i)).toHaveValue(0);
@@ -116,36 +134,30 @@ describe("PlannerPage PedalMap integration", () => {
   });
 
   it("rehydrates correctly on reload with PedalMap URL (caso E)", () => {
-    const { unmount } = render(
-      <HelmetProvider>
-        <MemoryRouter initialEntries={["/planner?source=pedalmap&sport=cycling&durationMinutes=53&temperatureC=26"]}>
-          <PlannerPage />
-        </MemoryRouter>
-      </HelmetProvider>,
+    const { unmount } = renderWithProviders(
+      <PlannerPage />,
+      {
+        initialEntries: ["/planner?source=pedalmap&sport=cycling&durationMinutes=53&temperatureC=26"],
+      }
     );
 
     expect(screen.getByLabelText(/Duración \(min\)/i)).toHaveValue(53);
 
     unmount();
 
-    render(
-      <HelmetProvider>
-        <MemoryRouter initialEntries={["/planner?source=pedalmap&sport=cycling&durationMinutes=53&temperatureC=26"]}>
-          <PlannerPage />
-        </MemoryRouter>
-      </HelmetProvider>,
-    );
+    renderWithProviders(<PlannerPage />, {
+      initialEntries: ["/planner?source=pedalmap&sport=cycling&durationMinutes=53&temperatureC=26"],
+    });
 
     expect(screen.getByLabelText(/Duración \(min\)/i)).toHaveValue(53);
   });
 
   it("prefills temperature from PedalMap and shows it in step 2", () => {
-    render(
-      <HelmetProvider>
-        <MemoryRouter initialEntries={["/planner?source=pedalmap&sport=cycling&temperatureC=26"]}>
-          <PlannerPage />
-        </MemoryRouter>
-      </HelmetProvider>,
+    renderWithProviders(
+      <PlannerPage />,
+      {
+        initialEntries: ["/planner?source=pedalmap&sport=cycling&temperatureC=26"],
+      }
     );
 
     fireEvent.click(screen.getByRole("button", { name: /Continuar/i }));
@@ -154,12 +166,11 @@ describe("PlannerPage PedalMap integration", () => {
   });
 
   it("accepts decimal distance from PedalMap and preserves manual decimal edit", () => {
-    render(
-      <HelmetProvider>
-        <MemoryRouter initialEntries={["/planner?source=pedalmap&sport=cycling&distanceKm=21.68&durationMinutes=53&elevationGainM=95&temperatureC=26"]}>
-          <PlannerPage />
-        </MemoryRouter>
-      </HelmetProvider>,
+    renderWithProviders(
+      <PlannerPage />,
+      {
+        initialEntries: ["/planner?source=pedalmap&sport=cycling&distanceKm=21.68&durationMinutes=53&elevationGainM=95&temperatureC=26"],
+      }
     );
 
     const distanceInput = screen.getByLabelText(/Distancia \(km, opcional\)/i);
@@ -171,12 +182,11 @@ describe("PlannerPage PedalMap integration", () => {
   });
 
   it("works with rounded decimal distance from PedalMap (21.6 km)", () => {
-    render(
-      <HelmetProvider>
-        <MemoryRouter initialEntries={["/planner?source=pedalmap&sport=cycling&distanceKm=21.6&durationMinutes=53&elevationGainM=95&temperatureC=26"]}>
-          <PlannerPage />
-        </MemoryRouter>
-      </HelmetProvider>,
+    renderWithProviders(
+      <PlannerPage />,
+      {
+        initialEntries: ["/planner?source=pedalmap&sport=cycling&distanceKm=21.6&durationMinutes=53&elevationGainM=95&temperatureC=26"],
+      }
     );
 
     expect(screen.getByLabelText(/Distancia \(km, opcional\)/i)).toHaveValue(21.6);

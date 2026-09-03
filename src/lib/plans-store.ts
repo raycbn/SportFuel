@@ -32,6 +32,23 @@ export function listPlans(email: string): SavedPlanRecord[] {
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
+export function countPlans(email: string): number {
+  return readAll().filter((record) => record.ownerEmail === email).length;
+}
+
+export function getEffectiveMaxSavedRoutes(maxRoutesSaved: number | null, plan: string | null): number {
+  if (plan === "premium") return Number.POSITIVE_INFINITY;
+  if (typeof maxRoutesSaved === "number" && maxRoutesSaved >= 0) return maxRoutesSaved;
+  return 3;
+}
+
+export function canSavePlan(email: string, maxRoutesSaved: number | null, plan: string | null): boolean {
+  if (!email) return false;
+  const limit = getEffectiveMaxSavedRoutes(maxRoutesSaved, plan);
+  if (limit === Number.POSITIVE_INFINITY) return true;
+  return countPlans(email) < limit;
+}
+
 export function savePlan(email: string, plan: NutritionPlan, publicPayload: string): SavedPlanRecord {
   const record: SavedPlanRecord = {
     id: plan.id,

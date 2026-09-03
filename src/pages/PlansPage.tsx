@@ -2,19 +2,24 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Seo } from "@/components/Seo";
 import { deleteAccount, getCurrentUser, logoutLocal, updateProfile } from "@/lib/auth";
+import { useFuelAuth } from "@/contexts/AuthContext";
 import { formatDuration, PREFERENCE_LABELS, SPORT_LABELS } from "@/lib/labels";
-import { deletePlan, listPlans, toggleFavorite } from "@/lib/plans-store";
+import { countPlans, deletePlan, listPlans, toggleFavorite } from "@/lib/plans-store";
 import type { FuelPreference, SportId } from "@/features/nutrition-engine";
 
 export function PlansPage() {
   const user = getCurrentUser();
   const [tick, setTick] = useState(0);
   const [filter, setFilter] = useState<"all" | "favorites">("all");
+  const { plan, maxRoutesSaved } = useFuelAuth();
   const plans = useMemo(() => {
     if (!user) return [];
     const all = listPlans(user.email);
     return filter === "favorites" ? all.filter((plan) => plan.favorite) : all;
   }, [user, filter, tick]);
+  const isPremium = plan === "premium";
+  const savedCount = countPlans(user?.email ?? "");
+  const limit = typeof maxRoutesSaved === "number" ? maxRoutesSaved : 3;
 
   if (!user) {
     return (
@@ -84,21 +89,28 @@ export function PlansPage() {
       <section className="space-y-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="font-display text-xl">Historial</h2>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className={`sf-btn px-4 text-sm ${filter === "all" ? "bg-ink-900 text-white" : "border"}`}
-              onClick={() => setFilter("all")}
-            >
-              Todos
-            </button>
-            <button
-              type="button"
-              className={`sf-btn px-4 text-sm ${filter === "favorites" ? "bg-ink-900 text-white" : "border"}`}
-              onClick={() => setFilter("favorites")}
-            >
-              Favoritos
-            </button>
+          <div className="flex items-center gap-3">
+            {!isPremium ? (
+              <p className="text-sm text-ink-700">
+                {savedCount}/{limit} planes guardados
+              </p>
+            ) : null}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className={`sf-btn px-4 text-sm ${filter === "all" ? "bg-ink-900 text-white" : "border"}`}
+                onClick={() => setFilter("all")}
+              >
+                Todos
+              </button>
+              <button
+                type="button"
+                className={`sf-btn px-4 text-sm ${filter === "favorites" ? "bg-ink-900 text-white" : "border"}`}
+                onClick={() => setFilter("favorites")}
+              >
+                Favoritos
+              </button>
+            </div>
           </div>
         </div>
         {plans.length === 0 ? (

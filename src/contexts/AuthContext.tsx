@@ -27,6 +27,9 @@ export interface FuelAuthState {
   plan: FuelPlan | null;
   entitlementLoading: boolean;
   entitlementError: boolean;
+  canSaveRoute: boolean | null;
+  maxRoutesSaved: number | null;
+  routesSaved: number;
 }
 
 export interface FuelAuthActions {
@@ -50,6 +53,9 @@ export function FuelAuthProvider({ children }: { children: ReactNode }) {
   const [plan, setPlan] = useState<FuelPlan | null>(null);
   const [entitlementLoading, setEntitlementLoading] = useState(false);
   const [entitlementError, setEntitlementError] = useState(false);
+  const [canSaveRoute, setCanSaveRoute] = useState<boolean | null>(null);
+  const [maxRoutesSaved, setMaxRoutesSaved] = useState<number | null>(null);
+  const [routesSaved, setRoutesSaved] = useState(0);
   const firebaseReady = isFirebaseConfigured();
   const fetchedRef = useRef(false);
 
@@ -93,12 +99,18 @@ export function FuelAuthProvider({ children }: { children: ReactNode }) {
         if (!cancelled) {
           setPlan(result.plan);
           setEntitlementLoading(false);
+          setCanSaveRoute(result.canSaveRoute);
+          setMaxRoutesSaved(result.maxRoutesSaved);
+          setRoutesSaved(result.routesSaved);
         }
       } catch {
         if (!cancelled) {
           setPlan("free");
           setEntitlementLoading(false);
           setEntitlementError(true);
+          setCanSaveRoute(null);
+          setMaxRoutesSaved(null);
+          setRoutesSaved(0);
         }
       }
     }
@@ -116,6 +128,12 @@ export function FuelAuthProvider({ children }: { children: ReactNode }) {
   async function logout() {
     setUser(null);
     fetchedRef.current = false;
+    setPlan(null);
+    setEntitlementLoading(false);
+    setEntitlementError(false);
+    setCanSaveRoute(null);
+    setMaxRoutesSaved(null);
+    setRoutesSaved(0);
     await signOutFuel();
     logoutLocal();
   }
@@ -131,6 +149,9 @@ export function FuelAuthProvider({ children }: { children: ReactNode }) {
         plan,
         entitlementLoading,
         entitlementError,
+        canSaveRoute,
+        maxRoutesSaved,
+        routesSaved,
         loginLocal,
         registerLocal,
         logout,

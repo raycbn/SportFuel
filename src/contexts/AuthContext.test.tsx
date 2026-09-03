@@ -42,6 +42,9 @@ function AuthConsumer() {
       <span data-testid="ent-loading">{ctx.entitlementLoading ? "loading" : "idle"}</span>
       <span data-testid="ent-error">{ctx.entitlementError ? "error" : "ok"}</span>
       <span data-testid="user">{ctx.user ? "authed" : "guest"}</span>
+      <span data-testid="can-save-route">{ctx.canSaveRoute?.toString() ?? "null"}</span>
+      <span data-testid="max-routes-saved">{ctx.maxRoutesSaved?.toString() ?? "null"}</span>
+      <span data-testid="routes-saved">{ctx.routesSaved}</span>
     </div>
   );
 }
@@ -105,6 +108,52 @@ describe("AuthContext + Layout Phase 4C", () => {
     expect(screen.getByText("Conectado con PedalMap")).toBeInTheDocument();
     const premiumBadges = screen.getAllByText("Premium");
     expect(premiumBadges.filter((el) => el.tagName === "SPAN").length).toBeGreaterThan(0);
+
+    (globalThis as Record<string, unknown>).fetch = originalFetch;
+  });
+
+  it("exposes route entitlement fields from /me/entitlements", async () => {
+    vi.stubEnv("VITE_FIREBASE_API_KEY", "key");
+    vi.stubEnv("VITE_FIREBASE_AUTH_DOMAIN", "domain");
+    vi.stubEnv("VITE_FIREBASE_PROJECT_ID", "project");
+    vi.stubEnv("VITE_PEDALMAP_API_URL", "https://example.com");
+
+    const { getAuth, onAuthStateChanged, getIdToken } = await import("firebase/auth");
+    (onAuthStateChanged as unknown as ReturnType<typeof vi.fn>).mockImplementation((_auth: unknown, cb: (u: { uid: string } | null) => void) => {
+      setTimeout(() => cb({ uid: "uid-1" } as unknown as null), 0);
+      return mockUnsub;
+    });
+    (getIdToken as unknown as ReturnType<typeof vi.fn>).mockResolvedValue("id-token");
+    (getAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({ getIdToken });
+
+    const originalFetch = (globalThis as Record<string, unknown>).fetch;
+    (globalThis as Record<string, unknown>).fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            ok: true,
+            uid: "uid-1",
+            plan: "free",
+            allowlisted: false,
+            grupetaSeat: false,
+            emailVerified: true,
+            gpxExport: true,
+            freeGpxRemaining: null,
+            maxRoutesSaved: 5,
+            routesSaved: 2,
+            canSaveRoute: true,
+          }),
+      } as unknown as Response),
+    );
+
+    renderWithProviders(<AuthConsumer />);
+
+    await waitFor(() => expect(screen.getByTestId("user")).toHaveTextContent("authed"));
+    await waitFor(() => expect(screen.getByTestId("plan")).toHaveTextContent("free"));
+    await waitFor(() => expect(screen.getByTestId("can-save-route")).toHaveTextContent("true"));
+    await waitFor(() => expect(screen.getByTestId("max-routes-saved")).toHaveTextContent("5"));
+    await waitFor(() => expect(screen.getByTestId("routes-saved")).toHaveTextContent("2"));
 
     (globalThis as Record<string, unknown>).fetch = originalFetch;
   });
