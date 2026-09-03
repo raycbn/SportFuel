@@ -46,6 +46,9 @@ export function PlannerPage() {
   const [error, setError] = useState<string | null>(null);
   const [competition, setCompetition] = useState(false);
   const [digestiveTolerance, setDigestiveTolerance] = useState<PlannerInput["digestiveTolerance"]>(undefined);
+  const [caffeinePreferred, setCaffeinePreferred] = useState(false);
+  const [caffeineHabit, setCaffeineHabit] = useState<PlannerInput["caffeineHabit"]>(undefined);
+  const [caffeineSensitivity, setCaffeineSensitivity] = useState<PlannerInput["caffeineSensitivity"]>(undefined);
   const pedalMapContext = parsePedalMapContext(params);
   const routeSummary = extractRouteSummary(pedalMapContext);
   const { plan: authPlan } = useFuelAuth();
@@ -104,7 +107,7 @@ export function PlannerPage() {
       setError(issues[0]?.message ?? "Revisa los datos.");
       return;
     }
-    const next = buildNutritionPlan({ ...form, competition, digestiveTolerance });
+    const next = buildNutritionPlan({ ...form, competition, digestiveTolerance, caffeinePreferred, caffeineHabit, caffeineSensitivity });
     setPlan(next);
     setError(null);
     track("calculator_completed", { sport: form.sport, duration: form.durationMinutes });
@@ -377,6 +380,86 @@ export function PlannerPage() {
                       </Link>
                       .
                     </p>
+                  ) : null}
+                </div>
+                <div className="mt-6 space-y-3">
+                  <label className="flex items-start gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={caffeinePreferred}
+                      onChange={(event) => setCaffeinePreferred(event.target.checked)}
+                    />
+                    <span>
+                      <span className="font-medium">Incluir estrategia de cafeína</span>
+                      <span className="block text-xs text-ink-700">
+                        La cafeína puede mejorar el rendimiento en algunas personas, pero la respuesta individual varía.
+                      </span>
+                    </span>
+                  </label>
+                  {caffeinePreferred ? (
+                    <div className="space-y-3 rounded-2xl border p-4">
+                      <p className="text-xs text-ink-700">
+                        Las recomendaciones son orientativas y no sustituyen el consejo de un profesional sanitario.
+                      </p>
+                      <div>
+                        <p className="text-sm font-medium">Hábito de cafeína</p>
+                        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                          {[
+                            { value: "none", label: "No consumo", description: "Sin cafeína habitual." },
+                            { value: "low", label: "Ocasional", description: "Menos de 1 taza/día." },
+                            { value: "moderate", label: "Moderado", description: "1–3 tazas/día." },
+                            { value: "high", label: "Habitual", description: "Más de 3 tazas/día." },
+                          ].map((option) => (
+                            <label key={option.value} className="flex items-start gap-2 rounded-xl border p-2 text-xs">
+                              <input
+                                type="radio"
+                                name="caffeine-habit"
+                                value={option.value}
+                                checked={caffeineHabit === option.value}
+                                onChange={() => setCaffeineHabit(option.value as PlannerInput["caffeineHabit"])}
+                              />
+                              <span>
+                                <span className="font-medium">{option.label}</span>
+                                <span className="block text-ink-700">{option.description}</span>
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Sensibilidad a la cafeína</p>
+                        <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                          {[
+                            { value: "sensitive", label: "Sensible", description: "Efectos intensos con poca cantidad." },
+                            { value: "normal", label: "Normal", description: "Respuesta estándar." },
+                            { value: "resistant", label: "Resistente", description: "Necesita más cantidad para notar efecto." },
+                          ].map((option) => (
+                            <label key={option.value} className="flex items-start gap-2 rounded-xl border p-2 text-xs">
+                              <input
+                                type="radio"
+                                name="caffeine-sensitivity"
+                                value={option.value}
+                                checked={caffeineSensitivity === option.value}
+                                onChange={() => setCaffeineSensitivity(option.value as PlannerInput["caffeineSensitivity"])}
+                              />
+                              <span>
+                                <span className="font-medium">{option.label}</span>
+                                <span className="block text-ink-700">{option.description}</span>
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      {caffeinePreferred && !isPremium ? (
+                        <p className="text-sm text-fuel-700">
+                          La estrategia de cafeína avanzada es una función Premium.{" "}
+                          <Link className="underline" to="/premium">
+                            Ver planes Premium
+                          </Link>
+                          .
+                        </p>
+                      ) : null}
+                    </div>
                   ) : null}
                 </div>
               </div>

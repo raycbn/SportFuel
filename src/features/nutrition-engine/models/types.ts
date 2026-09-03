@@ -62,6 +62,8 @@ export interface PlannerInput {
   sweatRateLPerHour?: number;
   digestiveTolerance?: "low" | "normal" | "trained";
   caffeinePreferred?: boolean;
+  caffeineHabit?: "none" | "low" | "moderate" | "high";
+  caffeineSensitivity?: "normal" | "sensitive" | "resistant";
   competition?: boolean;
   dietaryRestrictions?: string[];
   clinicalFlags?: ClinicalFlag[];
@@ -251,6 +253,7 @@ export interface NutritionPlan {
   engineVersion: string;
   competitionStrategy?: import("../calculators/competition").CompetitionStrategy;
   digestiveAdaptation?: import("../calculators/digestive-adaptation").DigestiveAdaptation;
+  caffeineStrategy?: import("../calculators/caffeine-strategy").CaffeineStrategy;
 }
 
 export interface SweatRateInput {

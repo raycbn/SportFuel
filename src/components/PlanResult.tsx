@@ -260,6 +260,57 @@ export function PlanResult({ plan, onNeedAuth, routeSummary }: { plan: Nutrition
         </section>
       ) : null}
 
+      {plan.caffeineStrategy?.active && isPremium ? (
+        <section className="sf-card space-y-3 border-2 border-fuel-500/20 bg-fuel-50/40 p-6">
+          <h3 className="font-display text-xl">Estrategia de cafeína</h3>
+          <p className="text-sm text-ink-700">{plan.caffeineStrategy.summary}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <h4 className="font-semibold">Timing</h4>
+              <p className="mt-2 text-sm text-ink-700">{plan.caffeineStrategy.timing}</p>
+            </div>
+            <div>
+              <h4 className="font-semibold">Objetivo orientativo</h4>
+              <p className="mt-2 text-sm text-ink-700">
+                {plan.caffeineStrategy.dose.mgTotalMin}–{plan.caffeineStrategy.dose.mgTotalMax} mg (
+                {plan.caffeineStrategy.dose.mgPerKgMin}–{plan.caffeineStrategy.dose.mgPerKgMax} mg/kg)
+              </p>
+              {plan.caffeineStrategy.dose.capped ? (
+                <p className="mt-1 text-xs text-ink-700">{plan.caffeineStrategy.dose.capReason}</p>
+              ) : null}
+            </div>
+          </div>
+          <div>
+            <h4 className="font-semibold">Fuentes sugeridas</h4>
+            <ul className="mt-2 list-disc pl-5 text-sm text-ink-700">
+              {plan.caffeineStrategy.sourceGuidance.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+          <p className="text-sm text-ink-700">{plan.caffeineStrategy.habitNote}</p>
+          <p className="text-sm text-ink-700">{plan.caffeineStrategy.sleepWarning}</p>
+          <p className="text-sm text-ink-700">{plan.caffeineStrategy.stackingWarning}</p>
+          <p className="text-sm text-ink-700">{plan.caffeineStrategy.disclaimer}</p>
+        </section>
+      ) : null}
+
+      {plan.caffeineStrategy?.active && !isPremium ? (
+        <section className="sf-card space-y-3 border-2 border-fuel-500/20 bg-fuel-50/40 p-6">
+          <h3 className="font-display text-xl">Estrategia de cafeína</h3>
+          <p className="text-sm text-ink-700">
+            Tu plan puede incluir una estrategia de cafeína. La configuración detallada con dosis y timing está disponible para usuarios Premium.
+          </p>
+          <p className="text-sm text-fuel-700">
+            ¿Quieres acceder a la estrategia de cafeína avanzada?{" "}
+            <Link className="underline" to="/premium">
+              Ver planes Premium
+            </Link>
+            .
+          </p>
+        </section>
+      ) : null}
+
       {openFull ? (
         <div className="space-y-6">
           <section className="sf-card space-y-4 p-6">

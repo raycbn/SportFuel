@@ -33,6 +33,7 @@ export function PremiumPage() {
             <li>Planes guardados ilimitados</li>
             <li>Modo competición con timeline estructurado</li>
             <li>Adaptación digestiva avanzada</li>
+            <li>Estrategia de cafeína</li>
             <li>Personalización avanzada</li>
             <li>Más deportes y plantillas</li>
             <li>Trial futuro de 7 días</li>

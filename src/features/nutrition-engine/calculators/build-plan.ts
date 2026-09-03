@@ -1,6 +1,7 @@
 import { CLINICAL_BLOCK_MESSAGE, DISCLAIMER, ENGINE_VERSION } from "../rules/limits";
 import type { NutritionPlan, PlannerInput } from "../models/types";
 import { calculateCarbohydrate } from "./carbohydrate";
+import { calculateCaffeineStrategy } from "./caffeine-strategy";
 import { calculateCompetition } from "./competition";
 import { calculateDigestiveAdaptation } from "./digestive-adaptation";
 import { calculateElectrolytes } from "./electrolytes";
@@ -34,6 +35,7 @@ export function buildNutritionPlan(input: PlannerInput): NutritionPlan {
   const cost = estimateOutingCost(input, carbohydrate);
   const competitionStrategy = input.competition ? calculateCompetition(input, carbohydrate, hydration) : undefined;
   const digestiveAdaptation = input.digestiveTolerance ? calculateDigestiveAdaptation(input.digestiveTolerance) : undefined;
+  const caffeineStrategy = input.caffeinePreferred ? calculateCaffeineStrategy(input) : undefined;
 
   return {
     id: crypto.randomUUID(),
@@ -67,6 +69,7 @@ export function buildNutritionPlan(input: PlannerInput): NutritionPlan {
     engineVersion: ENGINE_VERSION,
     competitionStrategy,
     digestiveAdaptation,
+    caffeineStrategy,
   };
 }
 
