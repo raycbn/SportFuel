@@ -8,6 +8,7 @@ import { calculateElectrolytes } from "./electrolytes";
 import { calculateHydration } from "./hydration";
 import { buildShoppingList, estimateOutingCost, matchPantry } from "./pantry-shopping-cost";
 import { calculateDuring, calculatePreActivity, calculateRecovery } from "./pre-during-recovery";
+import { calculatePreRecoveryStrategy } from "./pre-recovery-strategy";
 import { validatePlannerInput } from "./validate";
 
 function publicSlug(input: PlannerInput): string {
@@ -36,6 +37,7 @@ export function buildNutritionPlan(input: PlannerInput): NutritionPlan {
   const competitionStrategy = input.competition ? calculateCompetition(input, carbohydrate, hydration) : undefined;
   const digestiveAdaptation = input.digestiveTolerance ? calculateDigestiveAdaptation(input.digestiveTolerance) : undefined;
   const caffeineStrategy = input.caffeinePreferred ? calculateCaffeineStrategy(input) : undefined;
+  const preRecoveryStrategy = calculatePreRecoveryStrategy(input, preActivity, recovery, hydration);
 
   return {
     id: crypto.randomUUID(),
@@ -70,6 +72,7 @@ export function buildNutritionPlan(input: PlannerInput): NutritionPlan {
     competitionStrategy,
     digestiveAdaptation,
     caffeineStrategy,
+    preRecoveryStrategy,
   };
 }
 

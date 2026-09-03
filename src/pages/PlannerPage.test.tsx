@@ -51,7 +51,7 @@ describe("success criterion UI", () => {
       fuelPreference: "mixed",
     });
     renderWithProviders(<PlanResult plan={plan} onNeedAuth={() => undefined} />);
-    expect(screen.getByText(/Tu plan/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Tu plan/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/Carbohidratos objetivo/i)).toBeInTheDocument();
     expect(screen.getByText(/g\/h$/)).toBeInTheDocument();
     expect(screen.getByText(/ml\/h$/)).toBeInTheDocument();

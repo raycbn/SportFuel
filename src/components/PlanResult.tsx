@@ -311,6 +311,104 @@ export function PlanResult({ plan, onNeedAuth, routeSummary }: { plan: Nutrition
         </section>
       ) : null}
 
+      {plan.preRecoveryStrategy && isPremium ? (
+        <section className="sf-card space-y-3 border-2 border-fuel-500/20 bg-fuel-50/40 p-6">
+          <h3 className="font-display text-xl">Preparación avanzada</h3>
+          <p className="text-sm text-ink-700">{plan.preRecoveryStrategy.preActivity.summary}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <h4 className="font-semibold">Timing</h4>
+              <ul className="mt-2 list-disc pl-5 text-sm text-ink-700">
+                {plan.preRecoveryStrategy.preActivity.timingGuidance.map((item: string) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold">Alimentación</h4>
+              <ul className="mt-2 list-disc pl-5 text-sm text-ink-700">
+                {plan.preRecoveryStrategy.preActivity.nutritionGuidance.map((item: string) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-semibold">Hidratación previa</h4>
+            <ul className="mt-2 list-disc pl-5 text-sm text-ink-700">
+              {plan.preRecoveryStrategy.preActivity.hydrationGuidance.map((item: string) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : null}
+
+      {plan.preRecoveryStrategy && !isPremium ? (
+        <section className="sf-card space-y-3 border-2 border-fuel-500/20 bg-fuel-50/40 p-6">
+          <h3 className="font-display text-xl">Preparación avanzada</h3>
+          <p className="text-sm text-ink-700">
+            Tu plan ya incluye una preparación básica. La preparación avanzada con timing, alimentación e hidratación detalladas está disponible para usuarios Premium.
+          </p>
+          <p className="text-sm text-fuel-700">
+            ¿Quieres acceder a la preparación avanzada?{" "}
+            <Link className="underline" to="/premium">
+              Ver planes Premium
+            </Link>
+            .
+          </p>
+        </section>
+      ) : null}
+
+      {plan.preRecoveryStrategy && isPremium ? (
+        <section className="sf-card space-y-3 border-2 border-fuel-500/20 bg-fuel-50/40 p-6">
+          <h3 className="font-display text-xl">Recuperación avanzada</h3>
+          <p className="text-sm text-ink-700">{plan.preRecoveryStrategy.recovery.summary}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <h4 className="font-semibold">Inmediatamente después</h4>
+              <ul className="mt-2 list-disc pl-5 text-sm text-ink-700">
+                {plan.preRecoveryStrategy.recovery.immediateGuidance.map((item: string) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold">Hidratación post</h4>
+              <ul className="mt-2 list-disc pl-5 text-sm text-ink-700">
+                {plan.preRecoveryStrategy.recovery.hydrationGuidance.map((item: string) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-semibold">Alimentación post</h4>
+            <ul className="mt-2 list-disc pl-5 text-sm text-ink-700">
+              {plan.preRecoveryStrategy.recovery.nutritionGuidance.map((item: string) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : null}
+
+      {plan.preRecoveryStrategy && !isPremium ? (
+        <section className="sf-card space-y-3 border-2 border-fuel-500/20 bg-fuel-50/40 p-6">
+          <h3 className="font-display text-xl">Recuperación avanzada</h3>
+          <p className="text-sm text-ink-700">
+            Tu plan ya incluye una recuperación básica. La recuperación avanzada con hidratación y alimentación detalladas está disponible para usuarios Premium.
+          </p>
+          <p className="text-sm text-fuel-700">
+            ¿Quieres acceder a la recuperación avanzada?{" "}
+            <Link className="underline" to="/premium">
+              Ver planes Premium
+            </Link>
+            .
+          </p>
+        </section>
+      ) : null}
+
       {openFull ? (
         <div className="space-y-6">
           <section className="sf-card space-y-4 p-6">

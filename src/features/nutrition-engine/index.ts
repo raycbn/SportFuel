@@ -8,6 +8,7 @@ export * from "./calculators/hydration";
 export * from "./calculators/electrolytes";
 export * from "./calculators/competition";
 export * from "./calculators/caffeine-strategy";
+export * from "./calculators/pre-recovery-strategy";
 export * from "./calculators/digestive-adaptation";
 export * from "./calculators/pre-during-recovery";
 export * from "./calculators/pantry-shopping-cost";

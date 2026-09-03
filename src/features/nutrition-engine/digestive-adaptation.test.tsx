@@ -106,7 +106,7 @@ describe("digestive adaptation premium", () => {
 
     await waitFor(() => expect(screen.getByText(/Adaptación digestiva/i)).toBeInTheDocument());
     expect(screen.getByText(/Plan conservador/i)).toBeInTheDocument();
-    expect(screen.getByText(/Timing/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Timing/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/Alimentos/i).length).toBeGreaterThanOrEqual(1);
 
     (globalThis as Record<string, unknown>).fetch = originalFetch;

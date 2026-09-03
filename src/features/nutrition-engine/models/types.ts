@@ -219,6 +219,21 @@ export interface OutingCost {
   disclaimer: string;
 }
 
+export interface PreRecoveryStrategy {
+  preActivity: {
+    summary: string;
+    timingGuidance: string[];
+    nutritionGuidance: string[];
+    hydrationGuidance: string[];
+  };
+  recovery: {
+    summary: string;
+    immediateGuidance: string[];
+    hydrationGuidance: string[];
+    nutritionGuidance: string[];
+  };
+}
+
 export interface NutritionPlan {
   id: string;
   createdAt: string;
@@ -254,6 +269,7 @@ export interface NutritionPlan {
   competitionStrategy?: import("../calculators/competition").CompetitionStrategy;
   digestiveAdaptation?: import("../calculators/digestive-adaptation").DigestiveAdaptation;
   caffeineStrategy?: import("../calculators/caffeine-strategy").CaffeineStrategy;
+  preRecoveryStrategy?: PreRecoveryStrategy;
 }
 
 export interface SweatRateInput {
