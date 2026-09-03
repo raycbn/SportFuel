@@ -249,6 +249,7 @@ export interface NutritionPlan {
   cost: OutingCost;
   disclaimer: string;
   engineVersion: string;
+  competitionStrategy?: import("../calculators/competition").CompetitionStrategy;
 }
 
 export interface SweatRateInput {

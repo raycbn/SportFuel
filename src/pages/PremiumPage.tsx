@@ -23,6 +23,7 @@ export function PremiumPage() {
             <li>Tasa de sudoración</li>
             <li>Lista de compra básica</li>
             <li>Hasta 3 planes guardados</li>
+            <li>Plan básico de nutrición</li>
           </ul>
         </article>
         <article className="sf-card p-6">
@@ -30,7 +31,7 @@ export function PremiumPage() {
           <p className="mt-1 text-fuel-700">4,99 €/mes o 39,99 €/año</p>
           <ul className="mt-3 list-disc pl-5 text-ink-700">
             <li>Planes guardados ilimitados</li>
-            <li>Historial completo</li>
+            <li>Modo competición con timeline estructurado</li>
             <li>Personalización avanzada</li>
             <li>Más deportes y plantillas</li>
             <li>Trial futuro de 7 días</li>

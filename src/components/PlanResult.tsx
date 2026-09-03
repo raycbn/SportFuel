@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { encodePublicPlan, sourceList, type NutritionPlan, type SportId } from "@/features/nutrition-engine";
+import { encodePublicPlan, sourceList, type CompetitionEvent, type NutritionPlan, type SportId } from "@/features/nutrition-engine";
 import { track } from "@/lib/analytics";
 import { getSessionEmail } from "@/lib/auth";
 import { useFuelAuth } from "@/contexts/AuthContext";
@@ -129,6 +129,94 @@ export function PlanResult({ plan, onNeedAuth, routeSummary }: { plan: Nutrition
           </p>
         ) : null}
       </section>
+
+      {plan.competitionStrategy ? (
+        <section className="sf-card space-y-3 border-2 border-fuel-500/20 bg-fuel-50/40 p-6">
+          <h3 className="font-display text-xl">Día de competición</h3>
+          <p className="text-sm text-ink-700">{plan.competitionStrategy.summary}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <h4 className="font-semibold">Pre-salida</h4>
+              <ul className="mt-2 space-y-2">
+                {plan.competitionStrategy.preStart.map((event: CompetitionEvent) => (
+                  <li key={event.minute} className="text-sm">
+                    <span className="font-medium">{event.label}</span>
+                    {event.carbohydrateGrams ? <span> · {event.carbohydrateGrams} g CHO</span> : null}
+                    {event.fluidMl ? <span> · {event.fluidMl} ml</span> : null}
+                    <ul className="list-disc pl-5 text-ink-700">
+                      {event.items.map((item: string, idx: number) => (
+                        <li key={idx}>{item}</li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold">Durante</h4>
+              <ul className="mt-2 space-y-2">
+                {plan.competitionStrategy.during.map((event: CompetitionEvent) => (
+                  <li key={event.minute} className="text-sm">
+                    <span className="font-medium">{event.label}</span>
+                    {event.carbohydrateGrams ? <span> · {event.carbohydrateGrams} g CHO</span> : null}
+                    {event.fluidMl ? <span> · {event.fluidMl} ml</span> : null}
+                    {event.sodiumMg ? <span> · {event.sodiumMg} mg sodio</span> : null}
+                    <ul className="list-disc pl-5 text-ink-700">
+                      {event.items.map((item: string, idx: number) => (
+                        <li key={idx}>{item}</li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <h4 className="font-semibold">Meta y primeros minutos</h4>
+              <ul className="mt-2 space-y-2">
+                {plan.competitionStrategy.finish.map((event: CompetitionEvent) => (
+                  <li key={event.minute} className="text-sm">
+                    <span className="font-medium">{event.label}</span>
+                    {event.carbohydrateGrams ? <span> · {event.carbohydrateGrams} g CHO</span> : null}
+                    {event.fluidMl ? <span> · {event.fluidMl} ml</span> : null}
+                    <ul className="list-disc pl-5 text-ink-700">
+                      {event.items.map((item: string, idx: number) => (
+                        <li key={idx}>{item}</li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold">Recuperación</h4>
+              <ul className="mt-2 space-y-2">
+                {plan.competitionStrategy.recovery.map((event: CompetitionEvent) => (
+                  <li key={event.minute} className="text-sm">
+                    <span className="font-medium">{event.label}</span>
+                    {event.carbohydrateGrams ? <span> · {event.carbohydrateGrams} g CHO</span> : null}
+                    {event.fluidMl ? <span> · {event.fluidMl} ml</span> : null}
+                    <ul className="list-disc pl-5 text-ink-700">
+                      {event.items.map((item: string, idx: number) => (
+                        <li key={idx}>{item}</li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-semibold">Estrategia de emergencia</h4>
+            <ul className="mt-2 list-disc pl-5 text-sm text-ink-700">
+              {plan.competitionStrategy.emergency.map((item: string, idx: number) => (
+                <li key={idx}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : null}
 
       {openFull ? (
         <div className="space-y-6">

@@ -6,6 +6,7 @@ export * from "./calculators/validate";
 export * from "./calculators/carbohydrate";
 export * from "./calculators/hydration";
 export * from "./calculators/electrolytes";
+export * from "./calculators/competition";
 export * from "./calculators/pre-during-recovery";
 export * from "./calculators/pantry-shopping-cost";
 export * from "./calculators/sweat-rate";

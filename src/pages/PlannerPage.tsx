@@ -19,6 +19,7 @@ import { track } from "@/lib/analytics";
 import { extractRouteSummary, parsePedalMapContext } from "@/lib/pedalmap-integration";
 import { GOAL_LABELS, INTENSITY_LABELS, PREFERENCE_LABELS, SPORT_LABELS, SPORT_READY } from "@/lib/labels";
 import { clearSweatRate, readSweatRate } from "@/lib/sweat-store";
+import { useFuelAuth } from "@/contexts/AuthContext";
 
 const STEPS = ["Deporte", "Duración", "Intensidad", "Condiciones", "Opcional"];
 
@@ -43,8 +44,11 @@ export function PlannerPage() {
   const [step, setStep] = useState(0);
   const [plan, setPlan] = useState<NutritionPlan | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [competition, setCompetition] = useState(false);
   const pedalMapContext = parsePedalMapContext(params);
   const routeSummary = extractRouteSummary(pedalMapContext);
+  const { plan: authPlan } = useFuelAuth();
+  const isPremium = authPlan === "premium";
 
   const [form, setForm] = useState<PlannerInput>(() => {
     const sportParam = params.get("sport");
@@ -99,7 +103,7 @@ export function PlannerPage() {
       setError(issues[0]?.message ?? "Revisa los datos.");
       return;
     }
-    const next = buildNutritionPlan(form);
+    const next = buildNutritionPlan({ ...form, competition });
     setPlan(next);
     setError(null);
     track("calculator_completed", { sport: form.sport, duration: form.durationMinutes });
@@ -306,6 +310,41 @@ export function PlannerPage() {
                 />
                 Tengo una condición clínica relevante (diabetes, enfermedad renal/cardiovascular, embarazo, TCA, alergia grave u otra) y no quiero un plan personalizado.
               </label>
+              <div className="space-y-2">
+                <label className="flex items-start gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={competition}
+                    onChange={(event) => {
+                      if (!event.target.checked) {
+                        setCompetition(false);
+                        return;
+                      }
+                      if (!isPremium) {
+                        setError("El Modo Competición es una función Premium. Puedes probar el plan normal sin límite.");
+                        return;
+                      }
+                      setCompetition(true);
+                      setError(null);
+                    }}
+                  />
+                  <span>
+                    <span className="font-medium">Modo competición</span>
+                    <span className="block text-xs text-ink-700">
+                      Timeline estructurado por horarios, cantidades exactas por evento y estrategia de emergencia. Solo para Premium.
+                    </span>
+                  </span>
+                </label>
+                {competition && !isPremium ? (
+                  <p className="text-sm text-fuel-700">
+                    ¿Quieres acceder al Modo Competición?{" "}
+                    <Link className="underline" to="/premium">
+                      Ver planes Premium
+                    </Link>
+                    .
+                  </p>
+                ) : null}
+              </div>
             </fieldset>
           ) : null}
 
