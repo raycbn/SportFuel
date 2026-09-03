@@ -32,6 +32,7 @@ export function PremiumPage() {
           <ul className="mt-3 list-disc pl-5 text-ink-700">
             <li>Planes guardados ilimitados</li>
             <li>Modo competición con timeline estructurado</li>
+            <li>Adaptación digestiva avanzada</li>
             <li>Personalización avanzada</li>
             <li>Más deportes y plantillas</li>
             <li>Trial futuro de 7 días</li>

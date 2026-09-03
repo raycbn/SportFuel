@@ -45,6 +45,7 @@ export function PlannerPage() {
   const [plan, setPlan] = useState<NutritionPlan | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [competition, setCompetition] = useState(false);
+  const [digestiveTolerance, setDigestiveTolerance] = useState<PlannerInput["digestiveTolerance"]>(undefined);
   const pedalMapContext = parsePedalMapContext(params);
   const routeSummary = extractRouteSummary(pedalMapContext);
   const { plan: authPlan } = useFuelAuth();
@@ -103,7 +104,7 @@ export function PlannerPage() {
       setError(issues[0]?.message ?? "Revisa los datos.");
       return;
     }
-    const next = buildNutritionPlan({ ...form, competition });
+    const next = buildNutritionPlan({ ...form, competition, digestiveTolerance });
     setPlan(next);
     setError(null);
     track("calculator_completed", { sport: form.sport, duration: form.durationMinutes });
@@ -344,6 +345,40 @@ export function PlannerPage() {
                     .
                   </p>
                 ) : null}
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Tolerancia digestiva</p>
+                  <div className="grid gap-2 sm:grid-cols-3">
+                    {[
+                      { value: "low", label: "Baja", description: "Tomas más pequeñas y frecuentes." },
+                      { value: "normal", label: "Normal", description: "Estrategia estándar." },
+                      { value: "trained", label: "Entrenada", description: "Mayor tolerancia a tomas densas en esfuerzos largos." },
+                    ].map((option) => (
+                      <label key={option.value} className="flex items-start gap-2 rounded-2xl border p-3 text-sm">
+                        <input
+                          type="radio"
+                          className="mt-1"
+                          name="digestive-tolerance"
+                          value={option.value}
+                          checked={digestiveTolerance === option.value}
+                          onChange={() => setDigestiveTolerance(option.value as PlannerInput["digestiveTolerance"])}
+                        />
+                        <span>
+                          <span className="font-medium">{option.label}</span>
+                          <span className="block text-xs text-ink-700">{option.description}</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  {digestiveTolerance && !isPremium ? (
+                    <p className="text-sm text-fuel-700">
+                      La adaptación digestiva avanzada es una función Premium.{" "}
+                      <Link className="underline" to="/premium">
+                        Ver planes Premium
+                      </Link>
+                      .
+                    </p>
+                  ) : null}
+                </div>
               </div>
             </fieldset>
           ) : null}

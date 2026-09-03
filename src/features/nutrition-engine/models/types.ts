@@ -250,6 +250,7 @@ export interface NutritionPlan {
   disclaimer: string;
   engineVersion: string;
   competitionStrategy?: import("../calculators/competition").CompetitionStrategy;
+  digestiveAdaptation?: import("../calculators/digestive-adaptation").DigestiveAdaptation;
 }
 
 export interface SweatRateInput {

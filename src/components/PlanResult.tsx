@@ -20,6 +20,7 @@ export function PlanResult({ plan, onNeedAuth, routeSummary }: { plan: Nutrition
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
   const { plan: authPlan, maxRoutesSaved, routesSaved } = useFuelAuth();
+  const isPremium = authPlan === "premium";
   const sources = useMemo(() => {
     const ids = [
       ...plan.carbohydrate.meta.evidenceSources,
@@ -42,7 +43,6 @@ export function PlanResult({ plan, onNeedAuth, routeSummary }: { plan: Nutrition
   const shareUrl = `/plan/${plan.shareSlug}?p=${encodeURIComponent(encodePublicPlan(plan))}`;
   const sportCallout = SPORT_CALLOUTS[plan.sport];
   const email = getSessionEmail();
-  const isPremium = authPlan === "premium";
   const limit = typeof maxRoutesSaved === "number" ? maxRoutesSaved : 3;
   const savedCount = typeof routesSaved === "number" ? routesSaved : 0;
   const atLimit = !isPremium && savedCount >= limit;
@@ -215,6 +215,48 @@ export function PlanResult({ plan, onNeedAuth, routeSummary }: { plan: Nutrition
               ))}
             </ul>
           </div>
+        </section>
+      ) : null}
+
+      {plan.digestiveAdaptation && isPremium ? (
+        <section className="sf-card space-y-3 border-2 border-fuel-500/20 bg-fuel-50/40 p-6">
+          <h3 className="font-display text-xl">Adaptación digestiva</h3>
+          <p className="text-sm text-ink-700">{plan.digestiveAdaptation.summary}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <h4 className="font-semibold">Timing</h4>
+              <ul className="mt-2 list-disc pl-5 text-sm text-ink-700">
+                {plan.digestiveAdaptation.timingGuidance.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold">Alimentos</h4>
+              <ul className="mt-2 list-disc pl-5 text-sm text-ink-700">
+                {plan.digestiveAdaptation.foodGuidance.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <p className="text-sm text-ink-700">{plan.digestiveAdaptation.carbohydrateNote}</p>
+        </section>
+      ) : null}
+
+      {plan.digestiveAdaptation && !isPremium ? (
+        <section className="sf-card space-y-3 border-2 border-fuel-500/20 bg-fuel-50/40 p-6">
+          <h3 className="font-display text-xl">Adaptación digestiva</h3>
+          <p className="text-sm text-ink-700">
+            Tu plan ya tiene en cuenta tu tolerancia digestiva en el cálculo de carbohidratos. La adaptación avanzada con timing y alimentos específicos está disponible para usuarios Premium.
+          </p>
+          <p className="text-sm text-fuel-700">
+            ¿Quieres acceder a la adaptación digestiva avanzada?{" "}
+            <Link className="underline" to="/premium">
+              Ver planes Premium
+            </Link>
+            .
+          </p>
         </section>
       ) : null}
 
