@@ -1,6 +1,8 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import type { User } from "firebase/auth";
+import { getIdToken } from "firebase/auth";
 import {
+  getFirebaseAuth,
   isFirebaseConfigured,
   onFirebaseAuthChanged,
   signInWithFuelHandoff,
@@ -12,6 +14,7 @@ import {
   logoutLocal,
   registerLocal,
 } from "@/lib/auth";
+import { fetchEntitlements, type FuelPlan } from "@/lib/entitlements";
 
 export type AuthProvider = "local" | "pedalmap";
 
@@ -21,6 +24,9 @@ export interface FuelAuthState {
   provider: AuthProvider;
   loading: boolean;
   firebaseReady: boolean;
+  plan: FuelPlan | null;
+  entitlementLoading: boolean;
+  entitlementError: boolean;
 }
 
 export interface FuelAuthActions {
@@ -41,7 +47,11 @@ export function useFuelAuth() {
 export function FuelAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [plan, setPlan] = useState<FuelPlan | null>(null);
+  const [entitlementLoading, setEntitlementLoading] = useState(false);
+  const [entitlementError, setEntitlementError] = useState(false);
   const firebaseReady = isFirebaseConfigured();
+  const fetchedRef = useRef(false);
 
   const localUser = getLocalUser();
   const provider: AuthProvider = user ? "pedalmap" : localUser ? "local" : "local";
@@ -59,6 +69,45 @@ export function FuelAuthProvider({ children }: { children: ReactNode }) {
     return unsub;
   }, [firebaseReady]);
 
+  useEffect(() => {
+    if (!user || !firebaseReady || fetchedRef.current) {
+      if (!user) {
+        setPlan(null);
+        setEntitlementLoading(false);
+        setEntitlementError(false);
+        fetchedRef.current = false;
+      }
+      return;
+    }
+    let cancelled = false;
+    fetchedRef.current = true;
+    setEntitlementLoading(true);
+    setEntitlementError(false);
+
+    async function load() {
+      try {
+        const auth = getFirebaseAuth();
+        if (!auth || !user) return;
+        const idToken = await getIdToken(user, true);
+        const result = await fetchEntitlements(idToken);
+        if (!cancelled) {
+          setPlan(result.plan);
+          setEntitlementLoading(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setPlan("free");
+          setEntitlementLoading(false);
+          setEntitlementError(true);
+        }
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, firebaseReady]);
+
   async function handoffLogin(customToken: string) {
     if (!firebaseReady) throw new Error("Firebase no está configurado.");
     await signInWithFuelHandoff(customToken);
@@ -66,6 +115,7 @@ export function FuelAuthProvider({ children }: { children: ReactNode }) {
 
   async function logout() {
     setUser(null);
+    fetchedRef.current = false;
     await signOutFuel();
     logoutLocal();
   }
@@ -78,6 +128,9 @@ export function FuelAuthProvider({ children }: { children: ReactNode }) {
         provider,
         loading,
         firebaseReady,
+        plan,
+        entitlementLoading,
+        entitlementError,
         loginLocal,
         registerLocal,
         logout,
