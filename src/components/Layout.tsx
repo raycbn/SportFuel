@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { getSessionEmail } from "@/lib/auth";
+import { useFuelAuth } from "@/contexts/AuthContext";
 
 const nav = [
   { to: "/planner", label: "Crear plan" },
@@ -8,6 +9,30 @@ const nav = [
   { to: "/sports", label: "Deportes" },
   { to: "/blog", label: "Blog" },
 ];
+
+function AccountBadge() {
+  const { provider, plan, entitlementLoading } = useFuelAuth();
+  const isPedalMap = provider === "pedalmap";
+  const isPremium = plan === "premium";
+
+  if (!isPedalMap && !isPremium) return null;
+
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-xs font-medium text-white">
+      {isPedalMap ? (
+        <>
+          <span className="inline-flex h-1.5 w-1.5 rounded-full bg-fuel-300" aria-hidden="true" />
+          <span>Conectado con PedalMap</span>
+        </>
+      ) : null}
+      {isPremium && !entitlementLoading ? (
+        <span className="ml-1 rounded-full bg-fuel-500 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+          Premium
+        </span>
+      ) : null}
+    </span>
+  );
+}
 
 export function Layout() {
   const [open, setOpen] = useState(false);
@@ -29,9 +54,12 @@ export function Layout() {
                 {item.label}
               </NavLink>
             ))}
-            <NavLink to={email ? "/plans" : "/login"} className="text-white/80 hover:text-white">
-              {email ? "Mis planes" : "Entrar"}
-            </NavLink>
+            <div className="flex items-center gap-3">
+              <AccountBadge />
+              <NavLink to={email ? "/plans" : "/login"} className="text-white/80 hover:text-white">
+                {email ? "Mis planes" : "Entrar"}
+              </NavLink>
+            </div>
             <Link to="/planner" className="sf-tap inline-flex items-center rounded-full bg-fuel-500 px-4 py-2 font-semibold text-white hover:bg-fuel-400">
               Crear mi plan
             </Link>
@@ -52,9 +80,12 @@ export function Layout() {
                 {item.label}
               </NavLink>
             ))}
-            <NavLink to={email ? "/plans" : "/login"} onClick={() => setOpen(false)} className="sf-tap flex items-center text-white/90">
-              {email ? "Mis planes" : "Entrar"}
-            </NavLink>
+            <div className="flex items-center gap-2">
+              <AccountBadge />
+              <NavLink to={email ? "/plans" : "/login"} onClick={() => setOpen(false)} className="sf-tap flex items-center text-white/90">
+                {email ? "Mis planes" : "Entrar"}
+              </NavLink>
+            </div>
             <Link to="/planner" onClick={() => setOpen(false)} className="sf-btn mt-2 bg-fuel-500 text-center text-white">
               Crear mi plan
             </Link>
