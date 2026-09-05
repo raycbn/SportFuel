@@ -1,6 +1,23 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --font-display: 'Sora', 'DM Sans', ui-sans, system-ui, sans-serif;
+  --font-sans: 'DM Sans', ui-sans, system-ui, sans-serif;
+  --color-ink-950: #07130f;
+  --color-ink-900: #0c1f18;
+  --color-ink-800: #123028;
+  --color-ink-700: #1a4034;
+  --color-fuel-50: #f3fbf6;
+  --color-fuel-100: #d8f3e3;
+  --color-fuel-300: #7ad4a3;
+  --color-fuel-400: #3fbf7a;
+  --color-fuel-500: #1f9d5b;
+  --color-fuel-600: #167a47;
+  --color-fuel-700: #125f39;
+  --color-ember-400: #f0b429;
+  --color-ember-500: #e09b13;
+  --shadow-card: 0 18px 50px -24px rgba(7, 19, 15, 0.45);
+}
 
 :root {
   color-scheme: light;

@@ -180,7 +180,7 @@ describe("AuthContext + Layout Phase 4C", () => {
 
     await waitFor(() => expect(screen.getByTestId("user")).toHaveTextContent("authed"));
     expect(screen.getByTestId("provider")).toHaveTextContent("pedalmap");
-    expect(screen.getByTestId("ent-loading")).toHaveTextContent("loading");
+    await waitFor(() => expect(screen.getByTestId("ent-loading")).toHaveTextContent("loading"));
     expect(screen.queryByText("Premium", { selector: "span" })).not.toBeInTheDocument();
   });
 
