@@ -2,6 +2,11 @@
   command = "npm run build"
   publish = "dist"
 
+# The Netlify Git integration must use the production canonical host too.
+# File-based config overrides any stale VITE_SITE_URL stored in the UI.
+[build.environment]
+  VITE_SITE_URL = "https://fuel.pedalmap.es"
+
 # Apply security headers to HTML and static assets. CSP starts in Report-Only
 # so we can inspect browser violations before enforcing it.
 [[headers]]
