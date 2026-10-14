@@ -20,7 +20,7 @@ jobs:
       - run: npm test
       - run: npm run build
         env:
-          VITE_SITE_URL: https://tranquil-basbousa-7fec55.netlify.app
+          VITE_SITE_URL: https://fuel.pedalmap.es
       - name: Deploy to Netlify
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
