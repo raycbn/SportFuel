@@ -17,14 +17,23 @@ export interface FirebaseConfig {
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 
+const PRODUCTION_FIREBASE_WEB_CONFIG: FirebaseConfig = {
+  apiKey: "AIzaSyBVm-ldZ499JHm0_mt6bQUKX7C-F1tP7gY",
+  authDomain: "pedalmap-79b3a.firebaseapp.com",
+  projectId: "pedalmap-79b3a",
+};
+
 export function readFirebaseConfig(): FirebaseConfig | null {
   const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
   const authDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
   const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
-  if (!apiKey || !authDomain || !projectId) return null;
-  return { apiKey, authDomain, projectId };
-}
+  if (apiKey && authDomain && projectId) return { apiKey, authDomain, projectId };
 
+  // Production shares the existing PedalMap Firebase identity; never ship a broken sign-in
+  // merely because Netlify did not inject the public browser configuration at build time.
+  if (import.meta.env.PROD) return PRODUCTION_FIREBASE_WEB_CONFIG;
+  return null;
+}
 export function getFirebaseApp(): FirebaseApp | null {
   if (app) return app;
   const config = readFirebaseConfig();
