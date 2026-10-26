@@ -21,6 +21,7 @@ jobs:
       - run: npm run build
         env:
           VITE_SITE_URL: https://fuel.pedalmap.es
+          VITE_PEDALMAP_API_URL: https://pedalmap-api.broken-dietician.workers.dev
       - name: Deploy to Netlify
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
