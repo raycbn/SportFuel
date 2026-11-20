@@ -5,7 +5,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { buildNutritionPlan } from "@/features/nutrition-engine";
 import { PlanResult } from "@/components/PlanResult";
 import { PlannerPage } from "@/pages/PlannerPage";
-import { FuelAuthProvider } from "@/contexts/AuthContext";
+import { FuelAuthContext, FuelAuthProvider } from "@/contexts/AuthContext";
 
 vi.mock("firebase/auth", () => {
   const mockAuth = {
@@ -57,6 +57,106 @@ describe("success criterion UI", () => {
     expect(screen.getByText(/ml\/h$/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Ver plan completo/i })).toBeInTheDocument();
     expect(screen.getByText(/Reparte carbohidratos e hidratación/i)).toBeInTheDocument();
+  });
+
+  it("uses Fuel saved plans instead of PedalMap route usage for the Free quota", () => {
+    const email = "quota@example.com";
+    const plansKey = "sportfuel.saved-plans.v1";
+    localStorage.setItem(
+      plansKey,
+      JSON.stringify(Array.from({ length: 3 }, (_, index) => ({ id: `saved-${index}`, ownerEmail: email }))),
+    );
+    const plan = buildNutritionPlan({
+      sport: "cycling",
+      durationMinutes: 180,
+      intensity: "moderate",
+      bodyMassKg: 75,
+      temperatureC: 25,
+      goal: "train",
+      fuelPreference: "mixed",
+    });
+    const auth = {
+      user: { email } as never,
+      localUser: null,
+      provider: "pedalmap" as const,
+      loading: false,
+      firebaseReady: true,
+      plan: "free" as const,
+      entitlementLoading: false,
+      entitlementError: false,
+      canSaveRoute: false,
+      maxRoutesSaved: 5,
+      routesSaved: 0,
+      loginLocal: vi.fn(),
+      registerLocal: vi.fn(),
+      logout: vi.fn(async () => undefined),
+      handoffLogin: vi.fn(async () => undefined),
+    };
+
+    try {
+      render(
+        <HelmetProvider>
+          <MemoryRouter>
+            <FuelAuthContext.Provider value={auth as never}>
+              <PlanResult plan={plan} onNeedAuth={() => undefined} />
+            </FuelAuthContext.Provider>
+          </MemoryRouter>
+        </HelmetProvider>,
+      );
+      expect(screen.getByRole("button", { name: /Límite de planes alcanzado/i })).toBeInTheDocument();
+      expect(screen.getByText(/límite de 3 planes guardados en modo Free/i)).toBeInTheDocument();
+    } finally {
+      localStorage.removeItem(plansKey);
+    }
+  });
+
+  it("keeps the detailed competition timeline Premium-only even for a shared plan", () => {
+    const plansKey = "sportfuel.saved-plans.v1";
+    localStorage.setItem(plansKey, "[]");
+    const plan = buildNutritionPlan({
+      sport: "cycling",
+      durationMinutes: 180,
+      intensity: "moderate",
+      bodyMassKg: 75,
+      temperatureC: 25,
+      goal: "train",
+      fuelPreference: "mixed",
+      competition: true,
+    });
+    const auth = {
+      user: { email: "free@example.com" } as never,
+      localUser: null,
+      provider: "pedalmap" as const,
+      loading: false,
+      firebaseReady: true,
+      plan: "free" as const,
+      entitlementLoading: false,
+      entitlementError: false,
+      canSaveRoute: false,
+      maxRoutesSaved: 5,
+      routesSaved: 0,
+      loginLocal: vi.fn(),
+      registerLocal: vi.fn(),
+      logout: vi.fn(async () => undefined),
+      handoffLogin: vi.fn(async () => undefined),
+    };
+
+    try {
+      render(
+        <HelmetProvider>
+          <MemoryRouter>
+            <FuelAuthContext.Provider value={auth as never}>
+              <PlanResult plan={plan} onNeedAuth={() => undefined} />
+            </FuelAuthContext.Provider>
+          </MemoryRouter>
+        </HelmetProvider>,
+      );
+      expect(plan.competitionStrategy).toBeDefined();
+      expect(screen.getByText(/timeline estructurado de competición.*Premium/i)).toBeInTheDocument();
+      expect(screen.queryByText(plan.competitionStrategy!.summary)).not.toBeInTheDocument();
+    } finally {
+      localStorage.removeItem(plansKey);
+    }
   });
 
   it("shows football strategy without opening the full plan", async () => {
@@ -193,5 +293,39 @@ describe("PlannerPage PedalMap integration", () => {
     expect(screen.getByLabelText(/Duración \(min\)/i)).toHaveValue(53);
     expect(screen.getByLabelText(/Desnivel \(m, opcional\)/i)).toHaveValue(95);
     expect(screen.getByText(/Tu salida de PedalMap/i)).toBeInTheDocument();
+  });
+
+  it("formats duration with decimal minutes as 'X h Y min' in route summary", () => {
+    renderWithProviders(
+      <PlannerPage />,
+      {
+        initialEntries: ["/planner?source=pedalmap&sport=cycling&distanceKm=30.8&durationMinutes=78.96666666666667&elevationGainM=311&temperatureC=26"],
+      }
+    );
+
+    expect(screen.getByText("1 h 19 min")).toBeInTheDocument();
+    expect(screen.queryByText(/78\.96/)).not.toBeInTheDocument();
+  });
+
+  it("formats duration under 60 minutes as 'XX min' in route summary", () => {
+    renderWithProviders(
+      <PlannerPage />,
+      {
+        initialEntries: ["/planner?source=pedalmap&sport=cycling&distanceKm=21.68&durationMinutes=45&elevationGainM=958&temperatureC=26"],
+      }
+    );
+
+    expect(screen.getByText("45 min")).toBeInTheDocument();
+  });
+
+  it("formats duration of 120 minutes as '2 h' in route summary", () => {
+    renderWithProviders(
+      <PlannerPage />,
+      {
+        initialEntries: ["/planner?source=pedalmap&sport=cycling&distanceKm=40&durationMinutes=120&elevationGainM=311&temperatureC=26"],
+      }
+    );
+
+    expect(screen.getByText("2 h")).toBeInTheDocument();
   });
 });

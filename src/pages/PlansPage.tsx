@@ -1,17 +1,36 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { Seo } from "@/components/Seo";
-import { deleteAccount, getCurrentUser, logoutLocal, updateProfile } from "@/lib/auth";
+import { FuelLink as Link } from "@/components/FuelLink";
+import {
+  type UserProfile,
+  deleteAccount,
+  getCurrentUser,
+  logoutLocal,
+  updateProfile,
+} from "@/lib/auth";
 import { useFuelAuth } from "@/contexts/AuthContext";
 import { formatDuration, PREFERENCE_LABELS, SPORT_LABELS } from "@/lib/labels";
-import { countPlans, deletePlan, listPlans, toggleFavorite } from "@/lib/plans-store";
+import { countPlans, deletePlan, getEffectiveMaxSavedRoutes, listPlans, toggleFavorite } from "@/lib/plans-store";
 import type { FuelPreference, SportId } from "@/features/nutrition-engine";
 
 export function PlansPage() {
-  const user = getCurrentUser();
   const [tick, setTick] = useState(0);
   const [filter, setFilter] = useState<"all" | "favorites">("all");
-  const { plan, maxRoutesSaved } = useFuelAuth();
+  const { plan, provider, user: authUser, logout: hostLogout } = useFuelAuth();
+  const localUser = getCurrentUser();
+  const user: UserProfile | null = useMemo(() => {
+    if (provider === "pedalmap") {
+      return authUser
+        ? ({
+            email: authUser.email ?? "",
+            createdAt: "",
+            provider: "pedalmap",
+            pedalmapUid: authUser.uid,
+          } as UserProfile)
+        : null;
+    }
+    return localUser;
+  }, [provider, authUser, localUser]);
   const plans = useMemo(() => {
     if (!user) return [];
     const all = listPlans(user.email);
@@ -19,7 +38,16 @@ export function PlansPage() {
   }, [user, filter, tick]);
   const isPremium = plan === "premium";
   const savedCount = countPlans(user?.email ?? "");
-  const limit = typeof maxRoutesSaved === "number" ? maxRoutesSaved : 3;
+  const limit = getEffectiveMaxSavedRoutes(null, plan);
+
+  const handleLogout = async () => {
+    if (provider === "pedalmap") {
+      await hostLogout();
+    } else {
+      logoutLocal();
+    }
+    setTick((v) => v + 1);
+  };
 
   if (!user) {
     return (
@@ -43,7 +71,7 @@ export function PlansPage() {
       <Seo title="Mis planes — PedalMap Fuel" description="Historial local de planes guardados." path="/plans" />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-3xl">Mis planes</h1>
-        <button className="sf-tap text-sm underline" onClick={() => { logoutLocal(); setTick((v) => v + 1); }}>
+        <button className="sf-tap text-sm underline" onClick={() => handleLogout()}>
           Cerrar sesión
         </button>
       </div>
@@ -76,15 +104,17 @@ export function PlansPage() {
           </label>
           <p className="text-sm text-ink-700">Email: {user.email}</p>
         </div>
-        <button
-          className="mt-4 text-sm text-red-700 underline"
-          onClick={() => {
-            deleteAccount();
-            setTick((v) => v + 1);
-          }}
-        >
-          Eliminar cuenta local
-        </button>
+        {provider === "local" ? (
+          <button
+            className="mt-4 text-sm text-red-700 underline"
+            onClick={() => {
+              deleteAccount();
+              setTick((v) => v + 1);
+            }}
+          >
+            Eliminar cuenta local
+          </button>
+        ) : null}
       </section>
       <section className="space-y-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

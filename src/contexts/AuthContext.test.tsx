@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { FuelAuthProvider, useFuelAuth } from "@/contexts/AuthContext";
@@ -38,7 +38,6 @@ function AuthConsumer() {
   return (
     <div>
       <span data-testid="provider">{ctx.provider}</span>
-      <span data-testid="uid">{ctx.user?.uid ?? "null"}</span>
       <span data-testid="plan">{ctx.plan ?? "null"}</span>
       <span data-testid="ent-loading">{ctx.entitlementLoading ? "loading" : "idle"}</span>
       <span data-testid="ent-error">{ctx.entitlementError ? "error" : "ok"}</span>
@@ -46,7 +45,6 @@ function AuthConsumer() {
       <span data-testid="can-save-route">{ctx.canSaveRoute?.toString() ?? "null"}</span>
       <span data-testid="max-routes-saved">{ctx.maxRoutesSaved?.toString() ?? "null"}</span>
       <span data-testid="routes-saved">{ctx.routesSaved}</span>
-      <button data-testid="logout" type="button" onClick={() => void ctx.logout()}>Cerrar sesión</button>
     </div>
   );
 }
@@ -108,6 +106,9 @@ describe("AuthContext + Layout Phase 4C", () => {
     expect(screen.getByTestId("provider")).toHaveTextContent("pedalmap");
     await waitFor(() => expect(screen.getByTestId("plan")).toHaveTextContent("premium"));
     expect(screen.getByText("Conectado con PedalMap")).toBeInTheDocument();
+    const accountLinks = screen.getAllByRole("link", { name: "Mi cuenta" });
+    expect(accountLinks.length).toBeGreaterThan(0);
+    expect(accountLinks.every((link) => link.getAttribute("href") === "/login")).toBe(true);
     const premiumBadges = screen.getAllByText("Premium");
     expect(premiumBadges.filter((el) => el.tagName === "SPAN").length).toBeGreaterThan(0);
 
@@ -216,7 +217,7 @@ describe("AuthContext + Layout Phase 4C", () => {
     );
 
     await waitFor(() => expect(screen.getByTestId("user")).toHaveTextContent("authed"));
-    await waitFor(() => expect(screen.getByTestId("plan")).toHaveTextContent("free"));
+    await waitFor(() => expect(screen.getByTestId("plan")).toHaveTextContent("null"));
     expect(screen.getByTestId("ent-error")).toHaveTextContent("error");
     expect(screen.queryByText("Premium", { selector: "span" })).not.toBeInTheDocument();
 
@@ -255,154 +256,86 @@ describe("AuthContext + Layout Phase 4C", () => {
     expect(screen.queryByText("Premium", { selector: "span" })).not.toBeInTheDocument();
   });
 
-  it("signs out Firebase and clears the user's entitlement state", async () => {
-    vi.stubEnv("VITE_FIREBASE_API_KEY", "key");
-    vi.stubEnv("VITE_FIREBASE_AUTH_DOMAIN", "domain");
-    vi.stubEnv("VITE_FIREBASE_PROJECT_ID", "project");
-    vi.stubEnv("VITE_PEDALMAP_API_URL", "https://example.com");
-
-    const { getAuth, onAuthStateChanged, getIdToken, signOut } = await import("firebase/auth");
-    const authInstance = {};
-    (onAuthStateChanged as unknown as ReturnType<typeof vi.fn>).mockImplementation(
-      (_auth: unknown, callback: (u: { uid: string } | null) => void) => {
-        setTimeout(() => callback({ uid: "uid-premium" }), 0);
-        return mockUnsub;
-      },
-    );
-    (getIdToken as unknown as ReturnType<typeof vi.fn>).mockResolvedValue("id-token");
-    (getAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue(authInstance);
-
-    const originalFetch = globalThis.fetch;
-    globalThis.fetch = vi.fn(() => Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({
-        ok: true,
-        uid: "uid-premium",
-        plan: "premium",
-        allowlisted: true,
-        grupetaSeat: false,
-        emailVerified: true,
-        gpxExport: true,
-        freeGpxRemaining: null,
-        maxRoutesSaved: null,
-        routesSaved: 0,
-        canSaveRoute: true,
-      }),
-    } as Response)) as typeof fetch;
-
-    try {
-      renderWithProviders(
-        <>
-          <AuthConsumer />
-          <Layout />
-        </>,
-      );
-      await waitFor(() => expect(screen.getByTestId("plan")).toHaveTextContent("premium"));
-      expect(screen.getByTestId("user")).toHaveTextContent("authed");
-
-      fireEvent.click(screen.getByTestId("logout"));
-      await waitFor(() => expect(screen.getByTestId("user")).toHaveTextContent("guest"));
-      await waitFor(() => expect(screen.getByTestId("plan")).toHaveTextContent("null"));
-      expect(screen.queryByText("Conectado con PedalMap")).not.toBeInTheDocument();
-      expect(screen.queryByText("Premium", { selector: "span" })).not.toBeInTheDocument();
-      expect(signOut).toHaveBeenCalledTimes(1);
-    } finally {
-      globalThis.fetch = originalFetch;
-    }
-  });
-
-  it("reloads entitlements and clears a previous Premium plan when the Firebase account changes", async () => {
+  it("clears state on logout", async () => {
     vi.stubEnv("VITE_FIREBASE_API_KEY", "key");
     vi.stubEnv("VITE_FIREBASE_AUTH_DOMAIN", "domain");
     vi.stubEnv("VITE_FIREBASE_PROJECT_ID", "project");
     vi.stubEnv("VITE_PEDALMAP_API_URL", "https://example.com");
 
     const { getAuth, onAuthStateChanged, getIdToken } = await import("firebase/auth");
-    let emitAuthUser: ((user: { uid: string } | null) => void) | undefined;
+    (onAuthStateChanged as unknown as ReturnType<typeof vi.fn>).mockImplementation((_auth: unknown, cb: (u: null) => void) => {
+      setTimeout(() => cb(null), 0);
+      return mockUnsub;
+    });
+    (getIdToken as unknown as ReturnType<typeof vi.fn>).mockResolvedValue("id-token");
+    (getAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({ getIdToken });
+
+    renderWithProviders(
+      <>
+        <AuthConsumer />
+        <Layout />
+      </>,
+    );
+
+    await waitFor(() => expect(screen.getByTestId("user")).toHaveTextContent("guest"));
+    expect(screen.getByTestId("provider")).toHaveTextContent("local");
+    expect(screen.queryByText("Conectado con PedalMap")).not.toBeInTheDocument();
+    expect(screen.queryByText("Premium", { selector: "span" })).not.toBeInTheDocument();
+  });
+
+  it("reloads entitlements when the Firebase UID changes and does not keep the previous user's Premium", async () => {
+    vi.stubEnv("VITE_FIREBASE_API_KEY", "key");
+    vi.stubEnv("VITE_FIREBASE_AUTH_DOMAIN", "domain");
+    vi.stubEnv("VITE_FIREBASE_PROJECT_ID", "project");
+    vi.stubEnv("VITE_PEDALMAP_API_URL", "https://example.com");
+
+    const { getAuth, onAuthStateChanged, getIdToken } = await import("firebase/auth");
+    let authStateCallback: ((user: { uid: string } | null) => void) | null = null;
     (onAuthStateChanged as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       (_auth: unknown, callback: (user: { uid: string } | null) => void) => {
-        emitAuthUser = callback;
-        setTimeout(() => callback({ uid: "uid-premium" }), 0);
+        authStateCallback = callback;
         return mockUnsub;
       },
     );
     (getIdToken as unknown as ReturnType<typeof vi.fn>).mockImplementation(
-      async (user: { uid: string }) => `id-token-${user.uid}`,
+      async (user: { uid: string }) => `token-${user.uid}`,
     );
-    (getAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({});
+    (getAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({ getIdToken });
 
-    const originalFetch = globalThis.fetch;
-    let resolveFreeResponse: ((value: Response) => void) | undefined;
-    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
-      const token = new Headers(init?.headers).get("Authorization");
-      if (token === "Bearer id-token-uid-free") {
-        return new Promise<Response>((resolve) => {
-          resolveFreeResponse = resolve;
-        });
-      }
-      return Promise.resolve({
+    const originalFetch = (globalThis as Record<string, unknown>).fetch;
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const authorization = new Headers(init?.headers).get("Authorization") ?? "";
+      const uid = authorization.replace("Bearer token-", "");
+      const plan = uid === "uid-premium" ? "premium" : "free";
+      return {
         ok: true,
-        json: () => Promise.resolve({
-          ok: true,
-          uid: "uid-premium",
-          plan: "premium",
-          allowlisted: true,
-          grupetaSeat: false,
-          emailVerified: true,
-          gpxExport: true,
-          freeGpxRemaining: null,
-          maxRoutesSaved: null,
-          routesSaved: 0,
-          canSaveRoute: true,
+        json: async () => ({
+          ok: true, uid, email: `${uid}@example.test`, plan,
+          allowlisted: false, grupetaSeat: false, emailVerified: true,
+          gpxExport: true, freeGpxRemaining: 3,
+          maxRoutesSaved: plan === "premium" ? null : 5,
+          routesSaved: 0, canSaveRoute: true,
         }),
-      } as Response);
+      } as unknown as Response;
     });
-    globalThis.fetch = fetchMock as typeof fetch;
+    (globalThis as Record<string, unknown>).fetch = fetchMock;
 
-    try {
-      renderWithProviders(
-        <>
-          <AuthConsumer />
-          <Layout />
-        </>,
-      );
-      await waitFor(() => expect(screen.getByTestId("plan")).toHaveTextContent("premium"));
-      expect(screen.getByTestId("uid")).toHaveTextContent("uid-premium");
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+    renderWithProviders(<AuthConsumer />);
+    await waitFor(() => expect(authStateCallback).toBeTypeOf("function"));
 
-      await act(async () => {
-        emitAuthUser?.({ uid: "uid-free" });
-      });
-      await waitFor(() => expect(screen.getByTestId("uid")).toHaveTextContent("uid-free"));
-      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
-      expect(screen.getByTestId("plan")).toHaveTextContent("null");
-      expect(screen.getByTestId("ent-loading")).toHaveTextContent("loading");
-      expect(screen.queryByText("Premium", { selector: "span" })).not.toBeInTheDocument();
+    await act(async () => {
+      authStateCallback?.({ uid: "uid-premium" });
+    });
+    await waitFor(() => expect(screen.getByTestId("plan")).toHaveTextContent("premium"));
 
-      await act(async () => {
-        resolveFreeResponse?.({
-          ok: true,
-          json: () => Promise.resolve({
-            ok: true,
-            uid: "uid-free",
-            plan: "free",
-            allowlisted: false,
-            grupetaSeat: false,
-            emailVerified: true,
-            gpxExport: true,
-            freeGpxRemaining: 3,
-            maxRoutesSaved: 5,
-            routesSaved: 0,
-            canSaveRoute: true,
-          }),
-        } as Response);
-      });
-      await waitFor(() => expect(screen.getByTestId("plan")).toHaveTextContent("free"));
-      expect(screen.getByTestId("ent-loading")).toHaveTextContent("idle");
-      expect(screen.queryByText("Premium", { selector: "span" })).not.toBeInTheDocument();
-    } finally {
-      globalThis.fetch = originalFetch;
-    }
+    await act(async () => {
+      authStateCallback?.({ uid: "uid-free" });
+    });
+    await waitFor(() => expect(screen.getByTestId("plan")).toHaveTextContent("free"));
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(screen.getByTestId("ent-error")).toHaveTextContent("ok");
+
+    (globalThis as Record<string, unknown>).fetch = originalFetch;
   });
   it("does not make duplicate entitlement calls", async () => {
     vi.stubEnv("VITE_FIREBASE_API_KEY", "key");

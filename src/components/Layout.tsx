@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom";
+import { FuelNavLink, FuelLink } from "@/components/FuelLink";
 import { getSessionEmail } from "@/lib/auth";
 import { useFuelAuth } from "@/contexts/AuthContext";
 
@@ -36,6 +37,7 @@ function AccountBadge() {
 
 export function Layout() {
   const [open, setOpen] = useState(false);
+  const { user } = useFuelAuth();
   const email = getSessionEmail();
 
   return (
@@ -45,24 +47,24 @@ export function Layout() {
       </a>
       <header className="sticky top-0 z-40 border-b border-white/10 bg-ink-900/95 text-white backdrop-blur">
         <div className="sf-container flex items-center justify-between gap-3 py-3">
-          <Link to="/" className="font-display text-lg font-semibold tracking-tight">
+          <FuelLink to="/" className="font-display text-lg font-semibold tracking-tight">
             PedalMap Fuel
-          </Link>
+          </FuelLink>
           <nav className="hidden items-center gap-6 text-sm md:flex" aria-label="Principal">
             {nav.map((item) => (
-              <NavLink key={item.to} to={item.to} className={({ isActive }) => (isActive ? "text-fuel-300" : "text-white/80 hover:text-white")}>
+              <FuelNavLink key={item.to} to={item.to} className={({ isActive }) => (isActive ? "text-fuel-300" : "text-white/80 hover:text-white")}>
                 {item.label}
-              </NavLink>
+              </FuelNavLink>
             ))}
             <div className="flex items-center gap-3">
               <AccountBadge />
-              <NavLink to={email ? "/plans" : "/login"} className="text-white/80 hover:text-white">
-                {email ? "Mis planes" : "Entrar"}
-              </NavLink>
+              <FuelNavLink to={user ? "/login" : email ? "/plans" : "/login"} className="text-white/80 hover:text-white">
+                {user ? "Mi cuenta" : email ? "Mis planes" : "Entrar"}
+              </FuelNavLink>
             </div>
-            <Link to="/planner" className="sf-tap inline-flex items-center rounded-full bg-fuel-500 px-4 py-2 font-semibold text-white hover:bg-fuel-400">
+            <FuelLink to="/planner" className="sf-tap inline-flex items-center rounded-full bg-fuel-500 px-4 py-2 font-semibold text-white hover:bg-fuel-400">
               Crear mi plan
-            </Link>
+            </FuelLink>
           </nav>
           <button
             type="button"
@@ -76,19 +78,19 @@ export function Layout() {
         {open ? (
           <nav className="sf-container flex flex-col gap-1 pb-4 md:hidden" aria-label="Móvil">
             {nav.map((item) => (
-              <NavLink key={item.to} to={item.to} onClick={() => setOpen(false)} className="sf-tap flex items-center text-white/90">
+              <FuelNavLink key={item.to} to={item.to} onClick={() => setOpen(false)} className="sf-tap flex items-center text-white/90">
                 {item.label}
-              </NavLink>
+              </FuelNavLink>
             ))}
             <div className="flex items-center gap-2">
               <AccountBadge />
-              <NavLink to={email ? "/plans" : "/login"} onClick={() => setOpen(false)} className="sf-tap flex items-center text-white/90">
-                {email ? "Mis planes" : "Entrar"}
-              </NavLink>
+              <FuelNavLink to={user ? "/login" : email ? "/plans" : "/login"} onClick={() => setOpen(false)} className="sf-tap flex items-center text-white/90">
+                {user ? "Mi cuenta" : email ? "Mis planes" : "Entrar"}
+              </FuelNavLink>
             </div>
-            <Link to="/planner" onClick={() => setOpen(false)} className="sf-btn mt-2 bg-fuel-500 text-center text-white">
+            <FuelLink to="/planner" onClick={() => setOpen(false)} className="sf-btn mt-2 bg-fuel-500 text-center text-white">
               Crear mi plan
-            </Link>
+            </FuelLink>
           </nav>
         ) : null}
       </header>
@@ -102,15 +104,15 @@ export function Layout() {
             <p className="mt-2 max-w-xs">Nutrición e hidratación para tu próxima salida. Estimaciones, no un producto médico.</p>
           </div>
           <div className="flex flex-col gap-2">
-            <Link to="/calculators">Calculadoras</Link>
-            <Link to="/premium">Premium</Link>
-            <Link to="/blog">Blog</Link>
+            <FuelLink to="/calculators">Calculadoras</FuelLink>
+            <FuelLink to="/premium">Premium</FuelLink>
+            <FuelLink to="/blog">Blog</FuelLink>
           </div>
           <div className="flex flex-col gap-2">
-            <Link to="/legal/privacidad">Privacidad</Link>
-            <Link to="/legal/cookies">Cookies</Link>
-            <Link to="/legal/terminos">Términos</Link>
-            <Link to="/legal/aviso">Disclaimer</Link>
+            <FuelLink to="/legal/privacidad">Privacidad</FuelLink>
+            <FuelLink to="/legal/cookies">Cookies</FuelLink>
+            <FuelLink to="/legal/terminos">Términos</FuelLink>
+            <FuelLink to="/legal/aviso">Disclaimer</FuelLink>
           </div>
           <p className="text-xs leading-relaxed text-ink-700/80">
             No diagnostica ni trata enfermedades. No sustituye a un dietista-nutricionista o médico.

@@ -1,0 +1,51 @@
+/*
+ * Fuel "embedded" stylesheet.
+ *
+ * Purpose: register Fuel's color palette + scoped utility classes so Fuel
+ * keeps its appearance when rendered inside the PedalMap host.
+ *
+ * Deliberately avoids re-declaring host-owned globals that PedalMap already
+ * controls in `src/styles/index.css` (`:root`, `body`, `html`, `#root`,
+ * `:focus-visible`, `--font-display`). Redefining those would regress the host.
+ * Only Fuel-specific variables and the `sf-*` surface classes are registered.
+ *
+ * The `@import "tailwindcss"` is required in EVERY css file that uses `@apply`
+ * so Tailwind 4 initialises its theme for that file (PedalMap's own import is
+ * separate; duplicate imports are merged idempotently by @tailwindcss/vite).
+ */
+@import "tailwindcss";
+
+@source "./**/*.{ts,tsx,js,cjs,mjs,jsx}";
+
+@theme {
+  --color-ink-950: #07130f;
+  --color-ink-900: #0c1f18;
+  --color-ink-800: #123028;
+  --color-ink-700: #1a4034;
+  --color-fuel-50: #f3fbf6;
+  --color-fuel-100: #d8f3e3;
+  --color-fuel-300: #7ad4a3;
+  --color-fuel-400: #3fbf7a;
+  --color-fuel-500: #1f9d5b;
+  --color-fuel-600: #167a47;
+  --color-fuel-700: #125f39;
+  --color-ember-400: #f0b429;
+  --color-ember-500: #e09b13;
+  --shadow-card: 0 18px 50px -24px rgba(7, 19, 15, 0.45);
+}
+
+.sf-container {
+  @apply mx-auto w-full max-w-6xl px-3 sm:px-6;
+}
+
+.sf-card {
+  @apply rounded-2xl border border-ink-900/5 bg-white shadow-card sm:rounded-3xl;
+}
+
+.sf-btn {
+  @apply inline-flex min-h-11 items-center justify-center rounded-full px-5 py-3 text-sm font-semibold;
+}
+
+.sf-tap {
+  @apply min-h-11;
+}

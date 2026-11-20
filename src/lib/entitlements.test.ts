@@ -1,12 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
 describe("entitlements", () => {
-  it("returns free fallback when API_BASE is empty", async () => {
+  it("fails closed when API_BASE is empty", async () => {
+    vi.stubEnv("VITE_PEDALMAP_API_URL", "");
     const { fetchEntitlements } = await import("@/lib/entitlements");
-    const result = await fetchEntitlements("fake-id-token");
-    expect(result.plan).toBe("free");
-    expect(result.ok).toBe(true);
-    expect(result.uid).toBe("");
+    await expect(fetchEntitlements("fake-id-token")).rejects.toThrow(
+      "Entitlements API is not configured",
+    );
+    vi.unstubAllEnvs();
   });
 
   it("fetches entitlements from worker", async () => {

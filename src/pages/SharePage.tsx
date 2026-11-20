@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { FuelLink as Link } from "@/components/FuelLink";
 import { Seo } from "@/components/Seo";
 import { decodePublicPlan } from "@/features/nutrition-engine";
 import { formatDuration, SPORT_LABELS } from "@/lib/labels";

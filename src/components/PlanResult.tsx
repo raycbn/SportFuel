@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { FuelLink as Link } from "@/components/FuelLink";
 import { encodePublicPlan, sourceList, type CompetitionEvent, type NutritionPlan, type SportId } from "@/features/nutrition-engine";
 import { track } from "@/lib/analytics";
 import { getSessionEmail } from "@/lib/auth";
 import { useFuelAuth } from "@/contexts/AuthContext";
 import { formatDuration, GOAL_LABELS, INTENSITY_LABELS, PREFERENCE_LABELS, SPORT_LABELS } from "@/lib/labels";
-import { savePlan } from "@/lib/plans-store";
+import { countPlans, getEffectiveMaxSavedRoutes, savePlan } from "@/lib/plans-store";
 import { type RouteSummary } from "@/lib/pedalmap-integration";
 import { DisclaimerBanner } from "./DisclaimerBanner";
 
@@ -19,7 +19,7 @@ export function PlanResult({ plan, onNeedAuth, routeSummary }: { plan: Nutrition
   const [openFull, setOpenFull] = useState(false);
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
-  const { plan: authPlan, maxRoutesSaved, routesSaved } = useFuelAuth();
+  const { plan: authPlan, user: authUser } = useFuelAuth();
   const isPremium = authPlan === "premium";
   const sources = useMemo(() => {
     const ids = [
@@ -42,9 +42,9 @@ export function PlanResult({ plan, onNeedAuth, routeSummary }: { plan: Nutrition
 
   const shareUrl = `/plan/${plan.shareSlug}?p=${encodeURIComponent(encodePublicPlan(plan))}`;
   const sportCallout = SPORT_CALLOUTS[plan.sport];
-  const email = getSessionEmail();
-  const limit = typeof maxRoutesSaved === "number" ? maxRoutesSaved : 3;
-  const savedCount = typeof routesSaved === "number" ? routesSaved : 0;
+  const email = authUser?.email || getSessionEmail();
+  const limit = getEffectiveMaxSavedRoutes(null, authPlan);
+  const savedCount = email ? countPlans(email) : 0;
   const atLimit = !isPremium && savedCount >= limit;
 
   return (
@@ -130,7 +130,7 @@ export function PlanResult({ plan, onNeedAuth, routeSummary }: { plan: Nutrition
         ) : null}
       </section>
 
-      {plan.competitionStrategy ? (
+      {plan.competitionStrategy && isPremium ? (
         <section className="sf-card space-y-3 border-2 border-fuel-500/20 bg-fuel-50/40 p-6">
           <h3 className="font-display text-xl">Día de competición</h3>
           <p className="text-sm text-ink-700">{plan.competitionStrategy.summary}</p>
@@ -215,6 +215,18 @@ export function PlanResult({ plan, onNeedAuth, routeSummary }: { plan: Nutrition
               ))}
             </ul>
           </div>
+        </section>
+      ) : null}
+
+      {plan.competitionStrategy && !isPremium ? (
+        <section className="sf-card space-y-3 border-2 border-fuel-500/20 bg-fuel-50/40 p-6">
+          <h3 className="font-display text-xl">Modo competición</h3>
+          <p className="text-sm text-ink-700">
+            El timeline estructurado de competición, con estrategia antes, durante y después, está disponible en Premium.
+          </p>
+          <p className="text-sm text-fuel-700">
+            <Link className="underline" to="/premium">Ver planes Premium</Link>.
+          </p>
         </section>
       ) : null}
 

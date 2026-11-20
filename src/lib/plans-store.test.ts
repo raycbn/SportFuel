@@ -34,8 +34,8 @@ describe("plans-store limits", () => {
     expect(getEffectiveMaxSavedRoutes(null, "free")).toBe(3);
   });
 
-  it("getEffectiveMaxSavedRoutes respects backend value for free", () => {
-    expect(getEffectiveMaxSavedRoutes(5, "free")).toBe(5);
+  it("getEffectiveMaxSavedRoutes ignores PedalMap route caps for Fuel Free plans", () => {
+    expect(getEffectiveMaxSavedRoutes(5, "free")).toBe(3);
   });
 
   it("getEffectiveMaxSavedRoutes returns infinity for premium", () => {

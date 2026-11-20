@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { PlanResult } from "@/components/PlanResult";
 import { Seo } from "@/components/Seo";
+import { FuelLink as Link, useFuelNavigate } from "@/components/FuelLink";
+import { useFuelRouteContext } from "@/fuel-route-context";
 import {
   DEFAULT_PANTRY_IDS,
   buildNutritionPlan,
@@ -16,7 +18,7 @@ import {
   validatePlannerInput,
 } from "@/features/nutrition-engine";
 import { track } from "@/lib/analytics";
-import { extractRouteSummary, parsePedalMapContext } from "@/lib/pedalmap-integration";
+import { extractRouteSummary, parsePedalMapContext, type PedalMapContext } from "@/lib/pedalmap-integration";
 import { GOAL_LABELS, INTENSITY_LABELS, PREFERENCE_LABELS, SPORT_LABELS, SPORT_READY } from "@/lib/labels";
 import { clearSweatRate, readSweatRate } from "@/lib/sweat-store";
 import { useFuelAuth } from "@/contexts/AuthContext";
@@ -32,14 +34,14 @@ function defaultDuration(sport: SportId): number {
 
 function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
+  const m = Math.round(minutes % 60);
   if (h === 0) return `${m} min`;
   if (m === 0) return `${h} h`;
   return `${h} h ${m} min`;
 }
 
 export function PlannerPage() {
-  const navigate = useNavigate();
+  const navigate = useFuelNavigate();
   const [params] = useSearchParams();
   const [step, setStep] = useState(0);
   const [plan, setPlan] = useState<NutritionPlan | null>(null);
@@ -49,7 +51,33 @@ export function PlannerPage() {
   const [caffeinePreferred, setCaffeinePreferred] = useState(false);
   const [caffeineHabit, setCaffeineHabit] = useState<PlannerInput["caffeineHabit"]>(undefined);
   const [caffeineSensitivity, setCaffeineSensitivity] = useState<PlannerInput["caffeineSensitivity"]>(undefined);
-  const pedalMapContext = parsePedalMapContext(params);
+  const routeCtx = useFuelRouteContext();
+  console.log('[fuel] PlannerPage routeCtx=' + (routeCtx ? 'exists' : 'null'));
+  if (routeCtx) {
+    console.log('[fuel] routeCtx distance=' + routeCtx.distanceKm + ' duration=' + routeCtx.durationMinutes + ' elevation=' + routeCtx.elevationGainM + ' sport=' + routeCtx.sport);
+  }
+  const pedalMapContext = useMemo(() => {
+    if (routeCtx && routeCtx.sport) {
+      console.log('[fuel] handoff start (routeCtx.sport=' + routeCtx.sport + ')');
+      console.log('[fuel] handoff payload keys=' + Object.keys(routeCtx).filter(k => routeCtx[k as keyof typeof routeCtx] !== undefined).join(','));
+      return {
+        source: "pedalmap" as const,
+        sport: routeCtx.sport,
+        distanceKm: routeCtx.distanceKm,
+        durationMinutes: routeCtx.durationMinutes,
+        elevationGainM: routeCtx.elevationGainM,
+        temperatureC: routeCtx.temperatureC,
+        intensity: routeCtx.intensity,
+        goal: routeCtx.goal,
+        bodyMassKg: routeCtx.bodyMassKg,
+        sweatRateLPerHour: routeCtx.sweatRateLPerHour,
+        departureTime: routeCtx.departureTime,
+      } as PedalMapContext;
+    }
+    console.log('[fuel] PlannerPage fallback to parsePedalMapContext params=' + Array.from(params.entries()).map(([k,v]) => k+'='+v).join('&'));
+    return parsePedalMapContext(params);
+  }, [routeCtx, params]);
+  console.log('[fuel] pedalMapContext=' + (pedalMapContext ? 'exists' : 'null') + ' sport=' + (pedalMapContext?.sport ?? 'none') + ' distance=' + (pedalMapContext?.distanceKm ?? 'none') + ' duration=' + (pedalMapContext?.durationMinutes ?? 'none') + ' elevation=' + (pedalMapContext?.elevationGainM ?? 'none'));
   const routeSummary = extractRouteSummary(pedalMapContext);
   const { plan: authPlan } = useFuelAuth();
   const isPremium = authPlan === "premium";
@@ -88,6 +116,7 @@ export function PlannerPage() {
     return applied;
   });
 
+  console.log('[fuel] PlannerPage final form sport=' + form.sport + ' distance=' + form.distanceKm + ' duration=' + form.durationMinutes + ' elevation=' + form.elevationGainM + ' temperature=' + form.temperatureC);
   const issues = useMemo(() => validatePlannerInput(form), [form]);
   const storedSweat = readSweatRate();
 
@@ -107,9 +136,11 @@ export function PlannerPage() {
       setError(issues[0]?.message ?? "Revisa los datos.");
       return;
     }
+    console.log('[fuel] calculate() called form sport=' + form.sport + ' duration=' + form.durationMinutes + ' distance=' + form.distanceKm + ' elevation=' + form.elevationGainM + ' temperature=' + form.temperatureC);
     const next = buildNutritionPlan({ ...form, competition, digestiveTolerance, caffeinePreferred, caffeineHabit, caffeineSensitivity });
     setPlan(next);
     setError(null);
+    console.log('[fuel] calculate() result summary=' + next.summary.carbohydratePerHourLabel + ' hydration=' + next.summary.hydrationPerHourLabel);
     track("calculator_completed", { sport: form.sport, duration: form.durationMinutes });
     track("plan_created", { sport: form.sport });
     if (next.shoppingList.length) track("shopping_list_created", { items: next.shoppingList.length });

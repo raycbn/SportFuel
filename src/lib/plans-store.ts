@@ -36,10 +36,12 @@ export function countPlans(email: string): number {
   return readAll().filter((record) => record.ownerEmail === email).length;
 }
 
-export function getEffectiveMaxSavedRoutes(maxRoutesSaved: number | null, plan: string | null): number {
+export const FREE_MAX_SAVED_PLANS = 3;
+
+/** Fuel has its own plan-history quota; PedalMap's saved-route entitlement is unrelated. */
+export function getEffectiveMaxSavedRoutes(_maxRoutesSaved: number | null, plan: string | null): number {
   if (plan === "premium") return Number.POSITIVE_INFINITY;
-  if (typeof maxRoutesSaved === "number" && maxRoutesSaved >= 0) return maxRoutesSaved;
-  return 3;
+  return FREE_MAX_SAVED_PLANS;
 }
 
 export function canSavePlan(email: string, maxRoutesSaved: number | null, plan: string | null): boolean {

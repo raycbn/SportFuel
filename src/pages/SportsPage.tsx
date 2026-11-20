@@ -1,4 +1,5 @@
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { FuelLink as Link } from "@/components/FuelLink";
 import { Seo, breadcrumbLd } from "@/components/Seo";
 import type { SportId } from "@/features/nutrition-engine";
 import { SPORT_LABELS } from "@/lib/labels";

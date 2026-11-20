@@ -22,19 +22,7 @@ export interface Entitlements {
 export async function fetchEntitlements(idToken: string): Promise<Entitlements> {
   const base = apiBase();
   if (!base) {
-    return {
-      ok: true,
-      uid: "",
-      plan: "free",
-      allowlisted: false,
-      grupetaSeat: false,
-      emailVerified: false,
-      gpxExport: true,
-      freeGpxRemaining: null,
-      maxRoutesSaved: null,
-      routesSaved: 0,
-      canSaveRoute: true,
-    };
+    throw new Error("Entitlements API is not configured");
   }
   const res = await fetch(`${base}/me/entitlements`, {
     headers: {

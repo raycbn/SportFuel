@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { FuelLink as Link } from "@/components/FuelLink";
 import { DisclaimerBanner } from "@/components/DisclaimerBanner";
 import { Seo, breadcrumbLd, faqLd } from "@/components/Seo";
 import { calculateSweatRate, validateSweatRateInput, type SweatRateResult } from "@/features/nutrition-engine";

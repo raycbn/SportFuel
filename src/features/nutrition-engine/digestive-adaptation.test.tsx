@@ -4,7 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { buildNutritionPlan } from "@/features/nutrition-engine";
 import { PlanResult } from "@/components/PlanResult";
-import { FuelAuthProvider } from "@/contexts/AuthContext";
+import { FuelAuthContext, FuelAuthProvider } from "@/contexts/AuthContext";
 
 const mockUnsub = () => {};
 
@@ -29,6 +29,33 @@ function renderWithProviders(ui: React.ReactElement, options?: { initialEntries?
     <HelmetProvider>
       <MemoryRouter initialEntries={options?.initialEntries}>
         <FuelAuthProvider>{ui}</FuelAuthProvider>
+      </MemoryRouter>
+    </HelmetProvider>,
+  );
+}
+
+function renderWithPremiumAuth(ui: React.ReactElement) {
+  const auth = {
+    user: { uid: "premium-test-user", email: "premium@example.com" } as never,
+    localUser: null,
+    provider: "pedalmap" as const,
+    loading: false,
+    firebaseReady: true,
+    plan: "premium" as const,
+    entitlementLoading: false,
+    entitlementError: false,
+    canSaveRoute: true,
+    maxRoutesSaved: null,
+    routesSaved: 0,
+    loginLocal: vi.fn(),
+    registerLocal: vi.fn(),
+    logout: vi.fn(async () => undefined),
+    handoffLogin: vi.fn(async () => undefined),
+  };
+  return render(
+    <HelmetProvider>
+      <MemoryRouter>
+        <FuelAuthContext.Provider value={auth as never}>{ui}</FuelAuthContext.Provider>
       </MemoryRouter>
     </HelmetProvider>,
   );
@@ -267,7 +294,7 @@ describe("digestive adaptation premium", () => {
     });
     expect(plan.digestiveAdaptation).toBeUndefined();
     expect(plan.competitionStrategy).toBeDefined();
-    renderWithProviders(<PlanResult plan={plan} onNeedAuth={() => undefined} />);
+    renderWithPremiumAuth(<PlanResult plan={plan} onNeedAuth={() => undefined} />);
     expect(screen.getByText(/Día de competición/i)).toBeInTheDocument();
     expect(screen.queryByText(/Adaptación digestiva/i)).not.toBeInTheDocument();
   });

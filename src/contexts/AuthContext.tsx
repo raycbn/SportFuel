@@ -8,38 +8,40 @@ import {
   signInWithFuelHandoff,
   signOutFuel,
 } from "@/lib/firebase";
-import {
-  getCurrentUser as getLocalUser,
-  loginLocal,
-  logoutLocal,
-  registerLocal,
-} from "@/lib/auth";
 import { fetchEntitlements, type FuelPlan } from "@/lib/entitlements";
 
 export type AuthProvider = "local" | "pedalmap";
 
 export interface FuelAuthState {
   user: User | null;
-  localUser: ReturnType<typeof getLocalUser>;
+  /** Legacy local profile is never an authenticated identity. */
+  localUser: null;
   provider: AuthProvider;
   loading: boolean;
   firebaseReady: boolean;
   plan: FuelPlan | null;
   entitlementLoading: boolean;
   entitlementError: boolean;
+  entitlementAllowlisted: boolean | null;
+  entitlementGrupetaSeat: boolean | null;
   canSaveRoute: boolean | null;
   maxRoutesSaved: number | null;
   routesSaved: number;
 }
 
 export interface FuelAuthActions {
-  loginLocal: typeof loginLocal;
-  registerLocal: typeof registerLocal;
+  loginLocal: (email: string, password: string) => Promise<{ ok: true } | { ok: false; message: string }>;
+  registerLocal: (email: string, password: string) => Promise<{ ok: true } | { ok: false; message: string }>;
   logout: () => Promise<void>;
   handoffLogin: (customToken: string) => Promise<void>;
 }
 
-const FuelAuthContext = createContext<(FuelAuthState & FuelAuthActions) | null>(null);
+export const FuelAuthContext = createContext<(FuelAuthState & FuelAuthActions) | null>(null);
+
+const rejectLocalAuthentication = async (): Promise<{ ok: false; message: string }> => ({
+  ok: false,
+  message: "Fuel requiere una cuenta compartida de PedalMap. Inicia sesión con email o Google.",
+});
 
 export function useFuelAuth() {
   const ctx = useContext(FuelAuthContext);
@@ -53,18 +55,27 @@ export function FuelAuthProvider({ children }: { children: ReactNode }) {
   const [plan, setPlan] = useState<FuelPlan | null>(null);
   const [entitlementLoading, setEntitlementLoading] = useState(false);
   const [entitlementError, setEntitlementError] = useState(false);
+  const [entitlementAllowlisted, setEntitlementAllowlisted] = useState<boolean | null>(null);
+  const [entitlementGrupetaSeat, setEntitlementGrupetaSeat] = useState<boolean | null>(null);
   const [canSaveRoute, setCanSaveRoute] = useState<boolean | null>(null);
   const [maxRoutesSaved, setMaxRoutesSaved] = useState<number | null>(null);
   const [routesSaved, setRoutesSaved] = useState(0);
   const firebaseReady = isFirebaseConfigured();
   const fetchedUidRef = useRef<string | null>(null);
+  const userUid = user?.uid ?? null;
 
-  const localUser = getLocalUser();
-  const provider: AuthProvider = user ? "pedalmap" : localUser ? "local" : "local";
+  const provider: AuthProvider = user && !user.isAnonymous ? "pedalmap" : "local";
 
   useEffect(() => {
     if (!firebaseReady) {
+      setUser(null);
       setLoading(false);
+      setPlan(null);
+      setEntitlementLoading(false);
+      setEntitlementError(false);
+      setEntitlementAllowlisted(null);
+      setEntitlementGrupetaSeat(null);
+      fetchedUidRef.current = null;
       return;
     }
     setLoading(true);
@@ -76,59 +87,75 @@ export function FuelAuthProvider({ children }: { children: ReactNode }) {
   }, [firebaseReady]);
 
   useEffect(() => {
-    if (!user || !firebaseReady) {
-      if (!user) {
-        setPlan(null);
-        setEntitlementLoading(false);
-        setEntitlementError(false);
-        setCanSaveRoute(null);
-        setMaxRoutesSaved(null);
-        setRoutesSaved(0);
-        fetchedUidRef.current = null;
-      }
+    if (!firebaseReady || !userUid || !user || user.isAnonymous) {
+      setPlan(null);
+      setEntitlementLoading(false);
+      setEntitlementError(false);
+      setEntitlementAllowlisted(null);
+      setEntitlementGrupetaSeat(null);
+      setCanSaveRoute(null);
+      setMaxRoutesSaved(null);
+      setRoutesSaved(0);
+      fetchedUidRef.current = null;
       return;
     }
-    if (fetchedUidRef.current === user.uid) return;
 
+    // The entitlement cache is per Firebase UID, never per browser session.
+    // Clear the previous account's plan immediately while the new UID is checked.
+    if (fetchedUidRef.current === userUid) return;
     let cancelled = false;
-    fetchedUidRef.current = user.uid;
-    // Never carry a previous account's Premium status into a newly signed-in account.
+    fetchedUidRef.current = userUid;
     setPlan(null);
     setEntitlementLoading(true);
     setEntitlementError(false);
+    setEntitlementAllowlisted(null);
+    setEntitlementGrupetaSeat(null);
     setCanSaveRoute(null);
     setMaxRoutesSaved(null);
     setRoutesSaved(0);
 
+    const entitlementUser = user;
+
     async function load() {
       try {
         const auth = getFirebaseAuth();
-        if (!auth || !user) return;
-        const idToken = await getIdToken(user, true);
+        if (!auth) throw new Error("Firebase Auth unavailable");
+        const idToken = await getIdToken(entitlementUser, true);
         const result = await fetchEntitlements(idToken);
+        if (result.ok !== true || result.uid !== userUid) {
+          throw new Error("Entitlement identity did not match the signed-in Firebase user");
+        }
         if (!cancelled) {
           setPlan(result.plan);
           setEntitlementLoading(false);
+          setEntitlementError(false);
+          setEntitlementAllowlisted(result.allowlisted === true);
+          setEntitlementGrupetaSeat(result.grupetaSeat === true);
           setCanSaveRoute(result.canSaveRoute);
           setMaxRoutesSaved(result.maxRoutesSaved);
           setRoutesSaved(result.routesSaved);
         }
       } catch {
         if (!cancelled) {
-          setPlan("free");
+          // Unknown/unavailable entitlement is not Free and never Premium: keep it unverified.
+          setPlan(null);
           setEntitlementLoading(false);
           setEntitlementError(true);
+          setEntitlementAllowlisted(null);
+          setEntitlementGrupetaSeat(null);
           setCanSaveRoute(null);
           setMaxRoutesSaved(null);
           setRoutesSaved(0);
         }
       }
     }
-    load();
+    void load();
     return () => {
       cancelled = true;
     };
-  }, [user, firebaseReady]);
+    // Firebase UID is the identity key; token refreshes for the same UID do not change the plan owner.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userUid, firebaseReady]);
 
   async function handoffLogin(customToken: string) {
     if (!firebaseReady) throw new Error("Firebase no está configurado.");
@@ -141,29 +168,40 @@ export function FuelAuthProvider({ children }: { children: ReactNode }) {
     setPlan(null);
     setEntitlementLoading(false);
     setEntitlementError(false);
+    setEntitlementAllowlisted(null);
+    setEntitlementGrupetaSeat(null);
     setCanSaveRoute(null);
     setMaxRoutesSaved(null);
     setRoutesSaved(0);
-    await signOutFuel();
-    logoutLocal();
+    let signOutError: unknown = null;
+    try {
+      await signOutFuel();
+    } catch (error) {
+      signOutError = error;
+    }
+    // Legacy localStorage profiles are intentionally ignored and preserved;
+    // they are not sessions and cannot authenticate application actions.
+    if (signOutError) throw signOutError;
   }
 
   return (
     <FuelAuthContext.Provider
       value={{
         user,
-        localUser: getLocalUser(),
+        localUser: null,
         provider,
         loading,
         firebaseReady,
         plan,
         entitlementLoading,
         entitlementError,
+        entitlementAllowlisted,
+        entitlementGrupetaSeat,
         canSaveRoute,
         maxRoutesSaved,
         routesSaved,
-        loginLocal,
-        registerLocal,
+        loginLocal: rejectLocalAuthentication,
+        registerLocal: rejectLocalAuthentication,
         logout,
         handoffLogin,
       }}

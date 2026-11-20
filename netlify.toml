@@ -6,6 +6,7 @@
 # File-based config overrides any stale VITE_SITE_URL stored in the UI.
 [build.environment]
   VITE_SITE_URL = "https://fuel.pedalmap.es"
+  VITE_PEDALMAP_API_URL = "https://pedalmap-api.broken-dietician.workers.dev"
 
 # Apply security headers to HTML and static assets. CSP starts in Report-Only
 # so we can inspect browser violations before enforcing it.

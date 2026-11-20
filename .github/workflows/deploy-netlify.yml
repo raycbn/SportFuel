@@ -31,4 +31,13 @@ jobs:
             echo "Sin NETLIFY_AUTH_TOKEN o NETLIFY_SITE_ID: tests/build OK, deploy omitido."
             exit 0
           fi
-          npx -y netlify-cli deploy --prod --dir=dist --site "$NETLIFY_SITE_ID"
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            echo "Main: desplegando a producción."
+            npx -y netlify-cli deploy --prod --dir=dist --site "$NETLIFY_SITE_ID"
+          elif [ "$GITHUB_REF_NAME" = "cursor/sportfuel-mvp-4dfc" ]; then
+            echo "Rama de validación: desplegando únicamente un alias de preview."
+            npx -y netlify-cli deploy --alias=fuel-shared-auth-preview-20261120 --dir=dist --site "$NETLIFY_SITE_ID"
+          else
+            echo "Rama sin destino Netlify autorizado: $GITHUB_REF_NAME"
+            exit 1
+          fi

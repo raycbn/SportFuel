@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { HelmetProvider } from "react-helmet-async";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { FuelAuthContext } from "@/contexts/AuthContext";
 import { LoginPage } from "./AuthPages";
 
 const mocks = vi.hoisted(() => ({
@@ -22,6 +23,38 @@ vi.mock("@/lib/firebase", () => ({
 
 vi.mock("@/components/Seo", () => ({ Seo: () => null }));
 
+const authContextValue = {
+  user: null,
+  localUser: null,
+  provider: "local" as const,
+  loading: false,
+  firebaseReady: true,
+  plan: null,
+  entitlementLoading: false,
+  entitlementError: false,
+  entitlementAllowlisted: null,
+  entitlementGrupetaSeat: null,
+  canSaveRoute: null,
+  maxRoutesSaved: null,
+  routesSaved: 0,
+  loginLocal: vi.fn(async () => ({ ok: false as const, message: "Cuenta compartida requerida." })),
+  registerLocal: vi.fn(async () => ({ ok: false as const, message: "Cuenta compartida requerida." })),
+  logout: vi.fn(async () => undefined),
+  handoffLogin: vi.fn(async () => undefined),
+};
+
+function renderLogin() {
+  return render(
+    <HelmetProvider>
+      <MemoryRouter initialEntries={["/login"]}>
+        <FuelAuthContext.Provider value={authContextValue}>
+          <LoginPage />
+        </FuelAuthContext.Provider>
+      </MemoryRouter>
+    </HelmetProvider>,
+  );
+}
+
 describe("Fuel Google sign-in", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -31,15 +64,9 @@ describe("Fuel Google sign-in", () => {
   });
 
   it("starts Google OAuth against the shared PedalMap Firebase account", async () => {
-    render(
-      <HelmetProvider>
-        <MemoryRouter initialEntries={["/login"]}>
-          <LoginPage />
-        </MemoryRouter>
-      </HelmetProvider>,
-    );
+    renderLogin();
 
-    fireEvent.click(screen.getByRole("button", { name: /Continuar con Google \(cuenta PedalMap\)/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Continuar con Google/ }));
 
     await waitFor(() => {
       expect(mocks.signInWithPopup).toHaveBeenCalledOnce();
@@ -52,17 +79,11 @@ describe("Fuel Google sign-in", () => {
   it("does not fake a sign-in when Firebase is not configured", async () => {
     mocks.isFirebaseConfigured.mockReturnValue(false);
 
-    render(
-      <HelmetProvider>
-        <MemoryRouter initialEntries={["/login"]}>
-          <LoginPage />
-        </MemoryRouter>
-      </HelmetProvider>,
-    );
+    renderLogin();
 
     fireEvent.click(screen.getByRole("button", { name: /Continuar con Google/ }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(/no está configurado/i);
+    expect(await screen.findByRole("alert")).toHaveTextContent(/no se ha configurado|no está configurado/i);
     expect(mocks.signInWithPopup).not.toHaveBeenCalled();
   });
 });

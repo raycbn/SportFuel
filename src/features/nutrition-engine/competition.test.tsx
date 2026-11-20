@@ -4,7 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { buildNutritionPlan } from "@/features/nutrition-engine";
 import { PlanResult } from "@/components/PlanResult";
-import { FuelAuthProvider } from "@/contexts/AuthContext";
+import { FuelAuthContext, FuelAuthProvider } from "@/contexts/AuthContext";
 
 const mockUnsub = () => {};
 
@@ -29,6 +29,33 @@ function renderWithProviders(ui: React.ReactElement, options?: { initialEntries?
     <HelmetProvider>
       <MemoryRouter initialEntries={options?.initialEntries}>
         <FuelAuthProvider>{ui}</FuelAuthProvider>
+      </MemoryRouter>
+    </HelmetProvider>,
+  );
+}
+
+function renderWithPremiumAuth(ui: React.ReactElement) {
+  const auth = {
+    user: { uid: "premium-test-user", email: "premium@example.com" } as never,
+    localUser: null,
+    provider: "pedalmap" as const,
+    loading: false,
+    firebaseReady: true,
+    plan: "premium" as const,
+    entitlementLoading: false,
+    entitlementError: false,
+    canSaveRoute: true,
+    maxRoutesSaved: null,
+    routesSaved: 0,
+    loginLocal: vi.fn(),
+    registerLocal: vi.fn(),
+    logout: vi.fn(async () => undefined),
+    handoffLogin: vi.fn(async () => undefined),
+  };
+  return render(
+    <HelmetProvider>
+      <MemoryRouter>
+        <FuelAuthContext.Provider value={auth as never}>{ui}</FuelAuthContext.Provider>
       </MemoryRouter>
     </HelmetProvider>,
   );
@@ -107,7 +134,7 @@ describe("competition mode premium", () => {
 
     await waitFor(() => expect(screen.getByText(/Día de competición/i)).toBeInTheDocument());
     expect(screen.getByText(/Pre-salida/i)).toBeInTheDocument();
-    expect(screen.getByText(/Durante/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Durante/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/Meta y primeros minutos/i)).toBeInTheDocument();
     expect(screen.getAllByText(/Recuperación/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/Estrategia de emergencia/i)).toBeInTheDocument();
@@ -126,7 +153,7 @@ describe("competition mode premium", () => {
       fuelPreference: "mixed",
       competition: true,
     });
-    renderWithProviders(<PlanResult plan={plan} onNeedAuth={() => undefined} />);
+    renderWithPremiumAuth(<PlanResult plan={plan} onNeedAuth={() => undefined} />);
     expect(screen.getByText(/Día de competición/i)).toBeInTheDocument();
     const preStartEvents = screen.getAllByText(/Comida principal|Preparación final/);
     expect(preStartEvents.length).toBeGreaterThan(0);
@@ -143,7 +170,7 @@ describe("competition mode premium", () => {
       fuelPreference: "real-food",
       competition: true,
     });
-    renderWithProviders(<PlanResult plan={plan} onNeedAuth={() => undefined} />);
+    renderWithPremiumAuth(<PlanResult plan={plan} onNeedAuth={() => undefined} />);
     expect(screen.getByText(/Día de competición/i)).toBeInTheDocument();
     expect(screen.getAllByText(/Punto de control/i).length).toBeGreaterThan(1);
   });
@@ -162,7 +189,7 @@ describe("competition mode premium", () => {
         fuelPreference: "mixed",
         competition: true,
       });
-      renderWithProviders(<PlanResult plan={plan} onNeedAuth={() => undefined} />);
+      renderWithPremiumAuth(<PlanResult plan={plan} onNeedAuth={() => undefined} />);
       expect(screen.getByText(/Día de competición/i)).toBeInTheDocument();
     }
   });
@@ -178,7 +205,7 @@ describe("competition mode premium", () => {
       fuelPreference: "sports-products",
       competition: true,
     });
-    renderWithProviders(<PlanResult plan={plan} onNeedAuth={() => undefined} />);
+    renderWithPremiumAuth(<PlanResult plan={plan} onNeedAuth={() => undefined} />);
     expect(screen.getByText(/Día de competición/i)).toBeInTheDocument();
     expect(screen.getByText(/Pre-salida/i)).toBeInTheDocument();
     expect(screen.getAllByText(/g CHO/i).length).toBeGreaterThan(0);

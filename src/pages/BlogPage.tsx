@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { FuelLink as Link } from "@/components/FuelLink";
 import { Seo, breadcrumbLd } from "@/components/Seo";
 import { ARTICLES } from "@/content/articles";
 
