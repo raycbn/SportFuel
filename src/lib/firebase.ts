@@ -17,14 +17,23 @@ export interface FirebaseConfig {
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 
+const PRODUCTION_FIREBASE_WEB_CONFIG: FirebaseConfig = {
+  apiKey: "AIzaSyBVm-ldZ499JHm0_mt6bQUKX7C-F1tP7gY",
+  authDomain: "pedalmap-79b3a.firebaseapp.com",
+  projectId: "pedalmap-79b3a",
+};
+
 export function readFirebaseConfig(): FirebaseConfig | null {
+  // Production Fuel must use PedalMap's known-good Firebase identity. Build-time VITE_FIREBASE_*
+  // values may be stale or placeholders and must not override the valid production config.
+  if (import.meta.env.PROD) return PRODUCTION_FIREBASE_WEB_CONFIG;
+
   const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
   const authDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
   const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
-  if (!apiKey || !authDomain || !projectId) return null;
-  return { apiKey, authDomain, projectId };
+  if (apiKey && authDomain && projectId) return { apiKey, authDomain, projectId };
+  return null;
 }
-
 export function getFirebaseApp(): FirebaseApp | null {
   if (app) return app;
   const config = readFirebaseConfig();

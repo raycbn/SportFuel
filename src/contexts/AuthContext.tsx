@@ -57,7 +57,7 @@ export function FuelAuthProvider({ children }: { children: ReactNode }) {
   const [maxRoutesSaved, setMaxRoutesSaved] = useState<number | null>(null);
   const [routesSaved, setRoutesSaved] = useState(0);
   const firebaseReady = isFirebaseConfigured();
-  const fetchedRef = useRef(false);
+  const fetchedUidRef = useRef<string | null>(null);
 
   const localUser = getLocalUser();
   const provider: AuthProvider = user ? "pedalmap" : localUser ? "local" : "local";
@@ -76,19 +76,29 @@ export function FuelAuthProvider({ children }: { children: ReactNode }) {
   }, [firebaseReady]);
 
   useEffect(() => {
-    if (!user || !firebaseReady || fetchedRef.current) {
+    if (!user || !firebaseReady) {
       if (!user) {
         setPlan(null);
         setEntitlementLoading(false);
         setEntitlementError(false);
-        fetchedRef.current = false;
+        setCanSaveRoute(null);
+        setMaxRoutesSaved(null);
+        setRoutesSaved(0);
+        fetchedUidRef.current = null;
       }
       return;
     }
+    if (fetchedUidRef.current === user.uid) return;
+
     let cancelled = false;
-    fetchedRef.current = true;
+    fetchedUidRef.current = user.uid;
+    // Never carry a previous account's Premium status into a newly signed-in account.
+    setPlan(null);
     setEntitlementLoading(true);
     setEntitlementError(false);
+    setCanSaveRoute(null);
+    setMaxRoutesSaved(null);
+    setRoutesSaved(0);
 
     async function load() {
       try {
@@ -127,7 +137,7 @@ export function FuelAuthProvider({ children }: { children: ReactNode }) {
 
   async function logout() {
     setUser(null);
-    fetchedRef.current = false;
+    fetchedUidRef.current = null;
     setPlan(null);
     setEntitlementLoading(false);
     setEntitlementError(false);
