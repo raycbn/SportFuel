@@ -22,6 +22,18 @@ jobs:
         env:
           VITE_SITE_URL: https://fuel.pedalmap.es
           VITE_PEDALMAP_API_URL: ${{ github.ref == 'refs/heads/cursor/sportfuel-mvp-4dfc' && 'https://fuel-shared-auth-20261121-pedalmap-api.broken-dietician.workers.dev' || 'https://pedalmap-api.broken-dietician.workers.dev' }}
+      - name: Verify build API target
+        shell: bash
+        run: |
+          if [ "$GITHUB_REF_NAME" = "cursor/sportfuel-mvp-4dfc" ]; then
+            grep -R -Fq 'https://fuel-shared-auth-20261121-pedalmap-api.broken-dietician.workers.dev' dist/assets
+            if grep -R -Fq 'https://pedalmap-api.broken-dietician.workers.dev' dist/assets; then
+              echo "Error: el bundle de preview apunta al Worker de producción."
+              exit 1
+            fi
+          elif [ "$GITHUB_REF_NAME" = "main" ]; then
+            grep -R -Fq 'https://pedalmap-api.broken-dietician.workers.dev' dist/assets
+          fi
       - name: Deploy to Netlify
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -33,10 +45,10 @@ jobs:
           fi
           if [ "$GITHUB_REF_NAME" = "main" ]; then
             echo "Main: desplegando a producción."
-            npx -y netlify-cli deploy --prod --dir=dist --site "$NETLIFY_SITE_ID"
+            npx -y netlify-cli deploy --no-build --prod --dir=dist --site "$NETLIFY_SITE_ID"
           elif [ "$GITHUB_REF_NAME" = "cursor/sportfuel-mvp-4dfc" ]; then
             echo "Rama de validación: desplegando únicamente un alias de preview."
-            npx -y netlify-cli deploy --alias=fuel-shared-auth-preview-20261120 --dir=dist --site "$NETLIFY_SITE_ID"
+            npx -y netlify-cli deploy --no-build --alias=fuel-shared-auth-preview-20261120 --dir=dist --site "$NETLIFY_SITE_ID"
           else
             echo "Rama sin destino Netlify autorizado: $GITHUB_REF_NAME"
             exit 1
